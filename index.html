@@ -1,0 +1,226 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Facaade</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
+		<!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+	</head>
+	<body>
+
+		<!-- Sidebar -->
+			<section id="sidebar">
+				<div class="inner">
+					<nav>
+						<ul>
+							<li><a href="#intro">Facaade</a></li>
+							<li><a href="#one">Examples</a></li>
+							<li><a href="#two">Try It</a></li>
+							<li><a href="#three">How To Create Your Own</a></li>
+						</ul>
+					</nav>
+				</div>
+			</section>
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Intro -->
+					<section id="intro" class="wrapper style1 fullscreen fade-up">
+						<div class="inner">
+							<h1><u>Facaade</u></h1>
+							<h2>Our Goal</h2>
+							To take a selfie as an input from the webcam of the computer to generate smooth pick-up-line-selfies that the user can choose to send to his or her crush. We aim to provide a fail-proof service to pass on one’s deepest and most secret feelings to a special someone. We utilize image transformations techniques to manipulate input selfies from the user. The motivation behind this project was to work on a project that was fun to brainstorm for and work on. This project allowed us to use the knowledge from class as well as picking up new skills with web app development</p>
+							<ul class="actions">
+								<li><a href="#one" class="button scrolly">See Some Examples</a></li>
+							</ul>
+						</div>
+					</section>
+
+				<!-- One -->
+					<section id="one" class="wrapper style2 spotlights">
+						<section>
+							<a href="#" class="image"><img src="images/pic01.jpg" alt="" data-position="center center" /></a>
+							<div class="content">
+								<div class="inner">
+									<h2>My Life is Crooked Without You In My Life</h2>
+									<p>This one is the epitome of cuteness.</p>
+									<ul class="actions">
+										<li><a href="#two" class="button scrolly">How can I make one for myself?</a></li>
+									</ul>
+								</div>
+							</div>
+						</section>
+						<section>
+							<a href="#" class="image"><img src="images/pic02.jpg" alt="" data-position="top center" /></a>
+							<div class="content">
+								<div class="inner">
+									<h2>I Think You Are Out of this World</h2>
+									<p>This one will seriously impress your crush</p>
+									<ul class="actions">
+										<li><a href="#two" class="button scrolly">Teach me how to make this one!</a></li>
+									</ul>
+								</div>
+							</div>
+						</section>
+
+				<!-- Two -->
+					<section id="two" class="wrapper style1 fade-up">
+						<div class="inner">
+							<h2>Try It Out</h2>
+							<p>How's that special someone going to know its you?</p>
+							<div class="split style1">
+								<section>
+									<form method="post">
+										<div class="field half first">
+											<label for="phone">Phone #</label>
+											<input type="text" name="phone" id="phone" />
+										</div>
+										<div class="field half">
+											<label for="email">Email</label>
+											<input type="text" name="email" id="email" />
+										</div>
+									</form>
+								</section>
+							</div>
+							<h2>Now go ahead and take a picture!</h2>
+							<p>Make sure to center your head in the middle of the web cam</p>
+							<button id="take" class="button scrolly" href = "#photo">Take a photo <br/> </button>
+							<br/>
+							<video id="v"></video>
+							<br/>
+							<img src="http://placehold.it/300&text=Your%20image%20here%20..." id="photo" alt="photo">
+							<br/>
+							<canvas id="canvas" style="display:none;"></canvas>
+						</div>
+					</section>
+
+				<!-- Three -->
+					<section id="three" class="wrapper style3 fade-up">
+						<div class="inner">
+							<h2>What to do with the Image</h2>
+							<p>If you are happy with the image you took then follow the following steps to create your own pick-up-line selfie!</p>
+							<div class="features">
+								<section>
+									<span class="icon major fa-download"></span>
+									<h3>First</h3>
+									<p>Download the necessary .zip file by clicking on the icon: <a class="fa-file-pdf-o fa-lg" href= "Facaade.zip" download = "This File"></a></p>
+									<p>Unzip the folder somewhere accessible such as your desktop</p>
+								</section>
+								<section>
+									<span class="icon major fa-floppy-o"></span>
+									<h3>Second</h3>
+									<p>Right click the webcam selfie you took above and save it to the /images/source folder</p>
+									<p>Rename the image as "white.jpg"</p>
+								</section>
+								<section>
+									<span class="icon major fa-terminal"></span>
+									<h3>Third</h3>
+									<p>Open up your terminal/command line and cd/dir into the unzipped folder</p>
+									<p>i.e. if my unzipped folder was on my desktop I would: cd /Users/[yourname]/Desktop/[unzipped folder] </p>
+								</section>
+								<section>
+									<span class="icon major fa-heart"></span>
+									<h3>Fourth</h3>
+									<p>Depending on what pick-up selfie you intend to create look through the list of 'black' images. After selecting one resize your 'white' image to the same size and run the following code in your terminal/command line:</p>
+									<ul>
+										<li>For frame - $python rotation.py</li>
+										<li>For spaceship - $python warp_affine.py</li>
+										<li>For ufo - $python warp_perspective.py</li>
+										<li>For sun - $python translation.py</li>
+										<li>For boxing ring - $python scale_shear.py</li>
+									</ul>
+									<p>Your output will be appropriately placed in the output folder</p>
+								</section>
+								<section>
+									<span class="icon major fa-files-o"></span>
+									<h3>Fifth</h3>
+									<p>After transforming your image, take it from the output folder, rename it to white.jpg and readd it to the source folder. You can blend it with your pre-chosen 'black' image by running the following code:</p>
+									<ul>
+										<li>$python gen_blending.py</li>
+									</ul>
+									<p>Have fun with your newly generated pick-up selfie</p>
+								</section>
+								<section>
+									<span class="icon major fa-diamond"></span>
+									<h3>Sixth</h3>
+									<p>You can create as many pick-up-line selfies as your heart desires. Just repeat the previous steps</p>
+									<p>HAVE FUN AND GOOD LUCK GETTING YOUR CRUSH!</p>
+								</section>
+							</div>
+						</div>
+					</section>
+			</div>
+
+		<!-- Footer -->
+			<footer id="footer" class="wrapper style1-alt">
+				<div class="inner">
+					<ul class="menu">
+						<li>Thank you for checking out our project!</li><li>Shree Nadkarni and John Koh</a></li>
+					</ul>
+				</div>
+			</footer>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/skel.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+			<script src="assets/js/main.js"></script>
+			<script>
+			    ;(function(){
+			        function userMedia(){
+			            return navigator.getUserMedia = navigator.getUserMedia ||
+			            navigator.webkitGetUserMedia ||
+			            navigator.mozGetUserMedia ||
+			            navigator.msGetUserMedia || null;
+			        }
+			        // Now we can use it
+			        if( userMedia() ){
+			            var videoPlaying = false;
+			            var constraints = {
+			                video: true,
+			                audio:false
+			            };
+			            var video = document.getElementById('v');
+
+			            var media = navigator.getUserMedia(constraints, function(stream){
+
+			                // URL Object is different in WebKit
+			                var url = window.URL || window.webkitURL;
+
+			                // create the url and set the source of the video element
+			                video.src = url ? url.createObjectURL(stream) : stream;
+
+			                // Start the video
+			                video.play();
+			                videoPlaying  = true;
+			            }, function(error){
+			                console.log("ERROR");
+			                console.log(error);
+			            });
+
+
+			            // Listen for user click on the "take a photo" button
+			            document.getElementById('take').addEventListener('click', function(){
+			                if (videoPlaying){
+			                    var canvas = document.getElementById('canvas');
+			                    canvas.width = video.videoWidth;
+			                    canvas.height = video.videoHeight;
+			                    canvas.getContext('2d').drawImage(video, 0, 0);
+			                    var data = canvas.toDataURL('image/webp');
+			                    document.getElementById('photo').setAttribute('src', data);
+			                }
+			            }, false);
+			        } else {
+			            console.log("KO");
+			        }
+			    })();
+			</script>
+	</body>
+</html>
