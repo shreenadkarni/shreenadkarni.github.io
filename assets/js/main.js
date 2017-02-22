@@ -1,6 +1,6 @@
 /*
-	Hyperspace by HTML5 UP
-	html5up.net | @n33co
+	Future Imperfect by HTML5 UP
+	html5up.net | @ajlkn
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 */
 
@@ -18,15 +18,12 @@
 
 		var	$window = $(window),
 			$body = $('body'),
-			$sidebar = $('#sidebar');
-
-		// Hack: Enable IE flexbox workarounds.
-			if (skel.vars.IEVersion < 12)
-				$body.addClass('is-ie');
+			$menu = $('#menu'),
+			$sidebar = $('#sidebar'),
+			$main = $('#main');
 
 		// Disable animations/transitions until the page has loaded.
-			if (skel.canUse('transition'))
-				$body.addClass('is-loading');
+			$body.addClass('is-loading');
 
 			$window.on('load', function() {
 				window.setTimeout(function() {
@@ -34,22 +31,8 @@
 				}, 100);
 			});
 
-		// Forms.
-
-			// Fix: Placeholder polyfill.
-				$('form').placeholder();
-
-			// Hack: Activate non-input submits.
-				$('form').on('click', '.submit', function(event) {
-
-					// Stop propagation, default.
-						event.stopPropagation();
-						event.preventDefault();
-
-					// Submit form.
-						$(this).parents('form').submit();
-
-				});
+		// Fix: Placeholder polyfill.
+			$('form').placeholder();
 
 		// Prioritize "important" elements on medium.
 			skel.on('+medium -medium', function() {
@@ -59,150 +42,72 @@
 				);
 			});
 
-		// Sidebar.
-			if ($sidebar.length > 0) {
+		// IE<=9: Reverse order of main and sidebar.
+			if (skel.vars.IEVersion <= 9)
+				$main.insertAfter($sidebar);
 
-				var $sidebar_a = $sidebar.find('a');
+		// Menu.
+			$menu
+				.appendTo($body)
+				.panel({
+					delay: 500,
+					hideOnClick: true,
+					hideOnSwipe: true,
+					resetScroll: true,
+					resetForms: true,
+					side: 'right',
+					target: $body,
+					visibleClass: 'is-menu-visible'
+				});
 
-				$sidebar_a
-					.addClass('scrolly')
-					.on('click', function() {
+		// Search (header).
+			var $search = $('#search'),
+				$search_input = $search.find('input');
 
-						var $this = $(this);
+			$body
+				.on('click', '[href="#search"]', function(event) {
 
-						// External link? Bail.
-							if ($this.attr('href').charAt(0) != '#')
-								return;
+					event.preventDefault();
 
-						// Deactivate all links.
-							$sidebar_a.removeClass('active');
+					// Not visible?
+						if (!$search.hasClass('visible')) {
 
-						// Activate link *and* lock it (so Scrollex doesn't try to activate other links as we're scrolling to this one's section).
-							$this
-								.addClass('active')
-								.addClass('active-locked');
+							// Reset form.
+								$search[0].reset();
 
-					})
-					.each(function() {
+							// Show.
+								$search.addClass('visible');
 
-						var	$this = $(this),
-							id = $this.attr('href'),
-							$section = $(id);
+							// Focus input.
+								$search_input.focus();
 
-						// No section for this link? Bail.
-							if ($section.length < 1)
-								return;
-
-						// Scrollex.
-							$section.scrollex({
-								mode: 'middle',
-								top: '-20vh',
-								bottom: '-20vh',
-								initialize: function() {
-
-									// Deactivate section.
-										if (skel.canUse('transition'))
-											$section.addClass('inactive');
-
-								},
-								enter: function() {
-
-									// Activate section.
-										$section.removeClass('inactive');
-
-									// No locked links? Deactivate all links and activate this section's one.
-										if ($sidebar_a.filter('.active-locked').length == 0) {
-
-											$sidebar_a.removeClass('active');
-											$this.addClass('active');
-
-										}
-
-									// Otherwise, if this section's link is the one that's locked, unlock it.
-										else if ($this.hasClass('active-locked'))
-											$this.removeClass('active-locked');
-
-								}
-							});
-
-					});
-
-			}
-
-		// Scrolly.
-			$('.scrolly').scrolly({
-				speed: 1000,
-				offset: function() {
-
-					// If <=large, >small, and sidebar is present, use its height as the offset.
-						if (skel.breakpoint('large').active
-						&&	!skel.breakpoint('small').active
-						&&	$sidebar.length > 0)
-							return $sidebar.height();
-
-					return 0;
-
-				}
-			});
-
-		// Spotlights.
-			$('.spotlights > section')
-				.scrollex({
-					mode: 'middle',
-					top: '-10vh',
-					bottom: '-10vh',
-					initialize: function() {
-
-						// Deactivate section.
-							if (skel.canUse('transition'))
-								$(this).addClass('inactive');
-
-					},
-					enter: function() {
-
-						// Activate section.
-							$(this).removeClass('inactive');
-
-					}
-				})
-				.each(function() {
-
-					var	$this = $(this),
-						$image = $this.find('.image'),
-						$img = $image.find('img'),
-						x;
-
-					// Assign image.
-						$image.css('background-image', 'url(' + $img.attr('src') + ')');
-
-					// Set background position.
-						if (x = $img.data('position'))
-							$image.css('background-position', x);
-
-					// Hide <img>.
-						$img.hide();
+						}
 
 				});
 
-		// Features.
-			if (skel.canUse('transition'))
-				$('.features')
-					.scrollex({
-						mode: 'middle',
-						top: '-20vh',
-						bottom: '-20vh',
-						initialize: function() {
+			$search_input
+				.on('keydown', function(event) {
 
-							// Deactivate section.
-								$(this).addClass('inactive');
+					if (event.keyCode == 27)
+						$search_input.blur();
 
-						},
-						enter: function() {
+				})
+				.on('blur', function() {
+					window.setTimeout(function() {
+						$search.removeClass('visible');
+					}, 100);
+				});
 
-							// Activate section.
-								$(this).removeClass('inactive');
+		// Intro.
+			var $intro = $('#intro');
 
-						}
+			// Move to main on <=large, back to sidebar on >large.
+				skel
+					.on('+large', function() {
+						$intro.prependTo($main);
+					})
+					.on('-large', function() {
+						$intro.prependTo($sidebar);
 					});
 
 	});

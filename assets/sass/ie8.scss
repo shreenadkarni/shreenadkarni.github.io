@@ -4,16 +4,12 @@
 @import 'libs/skel';
 
 /*
-	Hyperspace by HTML5 UP
-	html5up.net | @n33co
+	Future Imperfect by HTML5 UP
+	html5up.net | @ajlkn
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 */
 
-/* Type */
-
-	body, input, select, textarea {
-		color: _palette(fg-bold);
-	}
+$palette-border: #dedede;
 
 /* Button */
 
@@ -22,17 +18,7 @@
 	input[type="button"],
 	button,
 	.button {
-		position: relative;
-
-		&:after {
-			display: none;
-		}
-	}
-
-/* Features */
-
-	.features {
-		border: solid 1px;
+		border: solid 1px $palette-border;
 	}
 
 /* Form */
@@ -43,17 +29,57 @@
 	input[type="tel"],
 	select,
 	textarea {
-		background: transparent;
-		border: solid 1px;
+		border: solid 1px $palette-border;
 	}
 
-/* Split */
+/* Post */
 
-	.split {
-		&.style1 {
-			> :first-child {
-				padding-right: 2em;
-				width: 70%;
+	.post {
+		border: solid 1px $palette-border;
+
+		> header {
+			border-bottom: solid 1px $palette-border;
+		}
+	}
+
+/* Mini Post */
+
+	.mini-post {
+		border: solid 1px $palette-border;
+	}
+
+/* Header */
+
+	#header {
+		border-bottom: solid 1px $palette-border;
+
+		.links {
+			border-left: solid 1px $palette-border;
+		}
+
+		.main {
+			ul {
+				li {
+					border-left: solid 1px $palette-border;
+				}
 			}
+		}
+	}
+
+/* Sidebar */
+
+	#sidebar {
+		> * {
+			border-top: solid 1px $palette-border;
+		}
+	}
+
+/* Menu */
+
+	#menu {
+		border-left: solid 1px $palette-border;
+
+		> * {
+			border-top: solid 1px $palette-border;
 		}
 	}

@@ -1,74 +1,85 @@
 /*
-	Hyperspace by HTML5 UP
-	html5up.net | @n33co
+	Future Imperfect by HTML5 UP
+	html5up.net | @ajlkn
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 */
 
-/* Type */
+/* List */
 
-	h1.major:after {
-		background: #b74e91;
-	}
-
-/* Wrapper */
-
-	.wrapper.fullscreen {
-		min-height: 0;
-		padding-bottom: 6em;
-		padding-top: 6em;
-	}
-
-		body.is-ie .wrapper.fullscreen {
-			height: auto;
-		}
-
-/* Spotlights */
-
-	.spotlights > section {
-		padding-left: 20em;
-		position: relative;
-	}
-
-		.spotlights > section > .image {
-			height: 100%;
-			left: 0;
-			position: absolute;
-			top: 0;
-			width: 20em;
-		}
-
-		.spotlights > section > .content {
-			width: 100%;
-		}
-
-/* Features */
-
-	.features:after {
+	ul.posts article:after {
 		clear: both;
 		content: '';
 		display: block;
 	}
 
-	.features section {
-		float: left;
+	ul.posts article .image {
+		display: table-cell;
+		vertical-align: top;
 	}
 
-/* Split */
+	ul.posts article header {
+		display: table-cell;
+		padding-right: 1em;
+		vertical-align: top;
+	}
 
-	.split:after {
+/* Author */
+
+	.author .name {
+		display: inline-block;
+		vertical-align: middle;
+	}
+
+	.author img {
+		display: inline-block;
+		vertical-align: middle;
+	}
+
+/* Post */
+
+	.post:after {
 		clear: both;
 		content: '';
 		display: block;
 	}
 
-	.split > * {
-		float: left;
+	.post > header:after {
+		clear: both;
+		content: '';
+		display: block;
 	}
 
-/* Sidebar */
+	.post > header .title {
+		display: table-cell;
+		vertical-align: top;
+		width: 65%;
+	}
 
-	#sidebar nav a:after {
-		background-color: #b74e91;
+	.post > header .meta {
+		display: table-cell;
+		vertical-align: top;
+		width: 30%;
+	}
+
+	.post > footer:after {
+		clear: both;
+		content: '';
+		display: block;
+	}
+
+	.post > footer .actions {
+		display: inline-block;
+	}
+
+	.post > footer .stats {
+		display: inline-block;
+		margin-left: 2em;
+	}
+
+/* Mini Post */
+
+	.mini-post .image {
+		display: block;
 	}
 
 /* Header */
@@ -79,10 +90,34 @@
 		display: block;
 	}
 
-	#header > .title {
+	#header h1 {
 		float: left;
 	}
 
-	#header > nav {
-		float: right;
+	#header .links {
+		float: left;
+	}
+
+	#header .main {
+		position: absolute;
+		right: 0;
+		top: 0;
+	}
+
+/* Wrapper */
+
+/* Sidebar */
+
+	#sidebar {
+		display: table-cell;
+		margin-right: 0;
+		padding-right: 3em;
+		vertical-align: top;
+	}
+
+/* Main */
+
+	#main {
+		display: table-cell;
+		vertical-align: top;
 	}
