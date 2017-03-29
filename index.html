@@ -38,6 +38,7 @@
 								<li><a href="#intro">Intro</a></li>
 								<li><a href="#about">About</a></li>
 								<li><a href="#work">Work</a></li>
+								<li><a href="#resume">Resume</a></li>
 								<li><a href="#contact">Contact</a></li>
 								<!--<li><a href="#elements">Elements</a></li>-->
 							</ul>
@@ -167,6 +168,14 @@
 								</dl>
 							</article>
 
+						<!-- Resume -->
+							<article id="resume">
+								<h2 class="major">Resume</h2>
+								<div align="center"><img src="images/resume.jpg" alt="resume" width="560" height="725"></div>
+								</br>
+								<div align="center"><a href="images/resumeSpring2017.pdf" class="button" download align="center"> Download <span class="fa fa-file-text-o"> </a></div>
+							</article>
+
 						<!-- Contact -->
 							<article id="contact">
 								<h2 class="major">Contact</h2>
@@ -222,15 +231,55 @@
 			<script src="assets/js/util.js"></script>
 			<script src="assets/js/main.js"></script>
 			<script>
-			jQuery(document).ready(function(){
-				jQuery('.skillbar').each(function(){
-					jQuery(this).find('.skillbar-bar').animate({
-						width:jQuery(this).attr('data-percent')
-					},6000);
-				});
+
+			$(window).on('scroll', function() {
+			    var y_scroll_pos = window.pageYOffset;
+			    var scroll_pos_test = 150;             // set to whatever you want it to be
+
+			    if(y_scroll_pos > scroll_pos_test) {
+			        jQuery(document).ready(function(){
+						jQuery('.skillbar').each(function(){
+							jQuery(this).find('.skillbar-bar').animate({
+								width:jQuery(this).attr('data-percent')
+							},6000);
+						});
+					});
+			    }
 			});
 
 			</script>
 
 	</body>
 </html>
+
+
+
+
+<!-- WORK EXPERIENCE													
+American Express (Internship)							            June 2016 – August 2016	
+•	Worked with a team of 2, while using Angular2 framework and D3.js, to create a visual mapping tool intended to show relationships between services used by American Express’ technology department.
+•	Worked with the same team of 2 to create a wireframing tool to help Salesforce engineers.
+
+NetScout Systems Inc. (Internship)							             May 2015 – August 2015	
+•	Worked with Ember.js, examined code base for the front-end dashboard of a web application and mapped it out. Introduced a new graphing method for the team to use for ease of code mapping.
+•	Pioneered a new way of writing acceptance tests for the company’s web-application through a business driven development language called Mocha, an Ember plug-in, incorporating the usage of page objects.
+
+Collaborative Workforce (Research)				               			August 2013 - May 2014
+•	Designed a system to stream live video feeds using multicast to an audience through a central server using C.
+•	Programmed a client/server based TCP packet transmission code to transfer FFT data
+•	Successfully integrated my team’s code with another team and displayed the audio spectrogram using raspberry pi at a remote location.
+
+eStadium Web-Apps Team (Research)						                             August 2014 – May 2016
+•	Worked with a team of 13 developers to enhance Georgia Tech football fans' game-day experience
+•	Researching methods to optimize and allow mobile devices to access innovative infotainment and venue-related information via WiFi, Bluetooth, 3G and 4G data networks
+
+PROJECTS														
+Android Development						                	            January 2015 - May 2015
+•	Worked with a team of 4 to create a socially driven shopping phone application
+•	Programmed through Android Studio using a Gradle Automation System to build our projects
+
+Front-end Web Development (Co-Leader)				   		            January 2015 - May 2015
+•	Successfully proposed to re-design and enhance the current outdated eStadium website and had it approved.
+•	Led a team of 4 to research effective, user-friendly frameworks to build an aesthetically appealing, social-networking driven website
+•	Worked to enhance the website for easy accessibility, and smooth transitions for mobile devices.
+ -->
