@@ -148,21 +148,28 @@ a{color:inherit}
    and the futures clock runs on New York hours, so neither means anything in
    the viewer's own timezone. */
 .session{
-  appearance:none; cursor:pointer; text-align:left;
-  display:flex; align-items:center; gap:8px; flex:0 0 auto;
+  display:flex; align-items:stretch; flex:0 0 auto;
   font-family:var(--mono); font-size:.66rem; letter-spacing:.1em; text-transform:uppercase;
-  color:var(--fg-dim); background:none; border:1px solid var(--line); border-radius:2px;
-  padding:5px 9px; white-space:nowrap;
+  color:var(--fg-dim); border:1px solid var(--line); border-radius:2px; white-space:nowrap;
+  transition:border-color .2s;
 }
 .session:hover{border-color:var(--fg-dim)}
-.session:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
+/* Two halves, because they answer different questions: the left is his day,
+   the right is the market's. They share a border so it still reads as one chip. */
+.s-half{
+  appearance:none; cursor:pointer; text-align:left; background:none; border:0;
+  display:flex; align-items:center; gap:8px; padding:5px 9px;
+  font:inherit; letter-spacing:inherit; text-transform:inherit; color:inherit;
+}
+.s-half:focus-visible{outline:2px solid var(--accent); outline-offset:-2px}
 .session .pip{width:6px; height:6px; border-radius:50%; background:var(--fg-dim); flex:0 0 auto}
 /* Awake, at the desk, asleep. Only the working hours pulse. */
 .session[data-state="awake"] .pip{background:var(--p-gold)}
 .session[data-state="active"] .pip{background:var(--p-green); box-shadow:0 0 0 0 color-mix(in srgb,var(--p-green) 70%,transparent); animation:pulse 2.4s infinite}
 .session[data-state="asleep"] .pip{background:var(--p-purple)}
 .session .clock{font-variant-numeric:tabular-nums; color:var(--fg)}
-.session .sesh{color:var(--fg-dim); padding-left:8px; border-left:1px solid var(--line)}
+.s-mkt{border-left:1px solid var(--line)}
+.session .sesh{color:var(--fg-dim)}
 /* Hover or focus the chip for the guess. It is decoration, so on a narrow nav
    the futures leg goes before anything that matters does. */
 .session-pop{
@@ -173,7 +180,11 @@ a{color:inherit}
   border:1px solid var(--line); border-radius:3px; padding:7px 10px;
   box-shadow:0 14px 34px -14px #000;
 }
-@media (max-width:560px){ .session .sesh{display:none} }
+.pop-row{display:flex; align-items:baseline; justify-content:space-between; gap:14px}
+.pop-row + .pop-row{margin-top:5px}
+.pop-row b{font-weight:500; color:var(--fg)}
+.pop-row i{font-style:normal; color:var(--fg-dim); font-variant-numeric:tabular-nums}
+@media (max-width:560px){ .s-mkt{display:none} }
 @keyframes pulse{70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
 
 /* ---------- easter egg: the tape ---------- */
@@ -184,6 +195,12 @@ a{color:inherit}
 }
 .egg svg{width:11px; height:13px; display:block; fill:var(--accent); transition:fill .2s}
 .session-wrap:hover .egg, .egg:focus-visible, .egg[aria-expanded="true"]{opacity:1; transform:none; pointer-events:auto}
+/* A touch device fires a hover state on the first tap and the click only on the
+   second, so anything revealed by :hover costs an extra tap. Where there is no
+   hover, the egg is simply always there and the first tap does what it says. */
+@media (hover:none){
+  .egg{opacity:1; transform:none; pointer-events:auto}
+}
 .egg:hover svg{fill:var(--fg)}
 .egg:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
 
@@ -586,7 +603,18 @@ a{color:inherit}
   font-family:var(--mono); font-size:.62rem; letter-spacing:.22em;
   text-transform:lowercase; color:var(--fg-dim);
 }
-.acc{position:absolute; inset:0; --spine:clamp(48px,4.2vw,60px)}
+/* Announced, not shown. */
+.sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0}
+.acc{position:absolute; inset:0; --spine:clamp(48px,4.2vw,60px); --spines:3}
+/* The fourth panel is not on the rail until the cloud in the pixel art is
+   found. Both its spine and its body stay in the DOM, because the rail pairs
+   spines to panels by index and dropping either would misalign the other
+   three. The rail's own width follows a count rather than a hardcoded 4, so
+   the panels stretch to meet it while there are only three. */
+.acc.unlocked{--spines:4}
+.acc-spine.locked, .acc-body.locked{display:none}
+.acc-spine.found{animation:eggin .5s cubic-bezier(.22,.61,.36,1) both}
+@keyframes eggin{from{opacity:0; transform:translateX(26px)} to{opacity:1; transform:none}}
 
 .acc-rail{position:absolute; top:0; bottom:0; right:0; display:flex; z-index:2}
 .acc-spine{
@@ -619,7 +647,7 @@ a{color:inherit}
   letter-spacing:.2em; text-transform:uppercase; white-space:nowrap;
 }
 
-.acc-panels{position:absolute; top:0; bottom:0; left:0; right:calc(var(--spine) * 4); z-index:1; overflow:hidden}
+.acc-panels{position:absolute; top:0; bottom:0; left:0; right:calc(var(--spine) * var(--spines)); z-index:1; overflow:hidden}
 /* Slides on transform + opacity, which the compositor can run on the GPU. The previous
    version animated clip-path through a backdrop-filter, and that blur had to be
    recomputed on every frame of the GIF underneath it — the source of the stutter.
@@ -676,11 +704,17 @@ a{color:inherit}
   border-radius:50%; background:#f6f5f2;
 }
 .acc-tools .tool i img{width:15px; height:15px; object-fit:contain; display:block}
-/* A wordmark carries its own name, so it takes a plate of its own and no label.
-   The ElevenLabs file is drawn in white, so unlike the rest its plate is dark --
-   each mark gets the backdrop its own artwork was made for. */
-.acc-tools .tool.mark{padding:0; border-radius:7px; background:#18181b; border-color:color-mix(in srgb,#fff 18%,transparent)}
-.acc-tools .tool.mark img{height:13px; width:auto; max-width:104px; object-fit:contain; display:block; margin:5px 11px}
+/* The ElevenLabs mark is two bars that run the full height of their viewBox,
+   drawn to sit inline at 1em with no built-in margin. Every other file in this
+   row carries its own padding, so at a shared 15px this one read noticeably
+   bigger. It is set by its ink instead, which lands it on the same optical
+   size as the rest. */
+.acc-tools .tool i img.bars{height:11px; width:auto}
+/* A second row set by hand rather than left to wrap: ElevenLabs and YouTube
+   belong on a line of their own. Making the pair a second .acc-tools holds the
+   break at every width, and its top margin matches the 8px gap between chips
+   rather than the full block margin the first row carries. */
+.acc-tools + .acc-tools{margin-top:8px}
 .acc-chips{display:flex; flex-wrap:wrap; gap:7px; margin-top:clamp(14px,2vw,20px)}
 .acc-chips span{
   display:inline-flex; align-items:center; gap:.5em;
@@ -688,6 +722,13 @@ a{color:inherit}
   border:1px solid var(--line); border-radius:999px; padding:4px 10px; color:var(--fg-dim);
 }
 .acc-chips span::before{content:""; width:5px; height:5px; border-radius:50%; background:var(--p-purple)}
+/* The SoundCloud file is a finished tile -- orange ground, white artwork, its
+   own rounded corners -- so it needs no plate behind it, unlike the line-art
+   marks in the tools row above. It stands in for the generic dot rather than
+   sitting next to one, and at 14px it fits inside the chip's existing line box,
+   so the pill keeps its height. */
+.acc-chips span.has-logo::before{display:none}
+.acc-chips span.has-logo img{width:14px; height:14px; display:block; flex:none}
 .acc-cta{
   display:inline-flex; align-items:center; gap:.6em; margin-top:clamp(16px,2.2vw,24px);
   text-decoration:none; border-radius:999px; padding:9px 18px;
@@ -704,7 +745,6 @@ a{color:inherit}
   font-family:var(--mono); font-size:.64rem; color:var(--fg-dim);
 }
 .acc-prev .candles{min-height:90px}
-.acc-prev .dj-list{padding:0; max-height:none}
 .acc-prev .dj-head{padding:0 0 .8em; border-bottom:1px solid var(--line)}
 .thought{width:100%; max-width:150px; height:auto; margin-inline:auto; color:var(--p-purple); display:block}
 /* This panel is a page of prose, not a two-column card: it runs full width and
@@ -712,7 +752,9 @@ a{color:inherit}
    is capped in ch so the lines stay readable without reserving an empty gutter. */
 #ab-1 .acc-in{grid-template-columns:1fr; align-items:start}
 #ab-1 .acc-d{max-width:82ch; font-size:.86em; line-height:1.62}
-#ab-1 .acc-d + .acc-d{margin-top:10px}
+/* 7px, not 10: with four paragraphs instead of three this is what keeps the
+   last line inside the panel at 800px, the tightest width the stage gets. */
+#ab-1 .acc-d + .acc-d{margin-top:7px}
 #ab-1 .acc-feats{grid-template-columns:1fr; gap:7px}
 /* The mark sits in the heading lockup, just right of the wordmark, so it drops
    the plate the other panels' previews wear: a bordered box beside a title
@@ -803,6 +845,11 @@ a{color:inherit}
   }
   .acc-in{padding:18px 16px}
   .acc-feats{grid-template-columns:1fr}
+  /* Unstacked there is no rail, so the found panel has to announce itself by
+     sliding into the column. It is only safe to animate the body down here:
+     above 760px a filled animation would override the translateX(100%) that
+     keeps a closed panel off screen and force it open. */
+  .acc-body.found{animation:eggin .5s cubic-bezier(.22,.61,.36,1) both}
   .lab-credit{text-align:left}
   /* Unstacked, every panel is already open and the rail is gone, so there is
      nothing left for the hint line to tell anyone. */
@@ -1037,22 +1084,20 @@ a{color:inherit}
 }
 
 /* Cinema frame strip */
-/* The film strip stays as a backdrop and the notice sits over it, so the box
-   keeps its shape instead of collapsing to a line of text. */
-.prev-soon{position:relative; flex:1 1 auto; min-height:0; display:flex}
-.prev-soon .frames{opacity:.45}
-.soon-tag{
-  position:absolute; inset:0; display:grid; place-items:center; text-align:center;
-  font-family:var(--mono); font-size:.7rem; letter-spacing:.08em; color:var(--fg);
-  text-shadow:0 1px 12px var(--surface), 0 0 20px var(--surface);
-}
+/* Four stills from the reel butted together, the way a film poster stacks
+   slabs of scenes. The gutters do the framing: the placeholder's gradient and
+   top/bottom rules came off once there were real pictures, because a border
+   around each still sitting inside the panel's own border read as four
+   widgets rather than one poster. */
 .frames{display:flex; gap:.4em; flex:1 1 auto; min-height:0}
 .frames i{
-  flex:1 1 0; display:block; border-radius:1px; background:var(--surface-2);
-  background-image:linear-gradient(180deg, color-mix(in srgb,var(--p-red) 16%,transparent), transparent 70%);
-  border-top:2px solid color-mix(in srgb,var(--fg) 14%,transparent);
-  border-bottom:2px solid color-mix(in srgb,var(--fg) 14%,transparent);
+  flex:1 1 0; min-width:0; display:block; overflow:hidden;
+  border-radius:1px; background:var(--surface-2);
 }
+/* The slot is 0.294 wide-to-tall and the stills are 0.306, so cover shaves a
+   sliver off the sides and keeps every subject whole. No object-position
+   needed. */
+.frames img{width:100%; height:100%; object-fit:cover; display:block}
 
 /* waveform for the DJ tile */
 .wave{display:flex; align-items:center; gap:.2em; flex:1 1 auto; min-height:0}
@@ -1064,30 +1109,97 @@ a{color:inherit}
 }
 .dj-head .dot{width:.5em; height:.5em; border-radius:50%; background:var(--p-red); flex:0 0 auto}
 .dj-head .r{margin-left:auto; color:var(--fg-dim); letter-spacing:.06em}
-.dj-list{list-style:none; margin:0; padding:.5em; flex:1 1 auto; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:2px}
-.dj-track{
-  appearance:none; border:0; background:none; width:100%; text-align:left; cursor:pointer;
-  display:flex; align-items:center; gap:.7em; padding:.65em .7em; border-radius:2px;
-  font:inherit; color:var(--fg-dim); transition:background .18s, color .18s;
+/* Two thin rows in a 328px box left a long empty run above the link out. The
+   sets are covers now, stacked the way records lean in a rack: the current one
+   front and centre, the other two raised and faded behind it, and the link to
+   everything else as the last cover rather than a line of text underneath. */
+.dj-car{position:relative; flex:1 1 0; min-height:0; display:flex; flex-direction:column; gap:.7em}
+.dj-stage{position:relative; flex:1 1 0; min-height:0; min-width:0; container-type:size}
+/* Sized off the stage rather than from max-width or max-height: neither of
+   those feeds back through aspect-ratio once the other side is pinned, which
+   left the cover 411x303 at 1440 and 300x303 at 1100. min() of the two sides
+   is square at every width. 58cqw keeps room at the sides for the two behind
+   and for the arrows outboard of those. */
+.dj-slide{
+  position:absolute; left:50%; top:50%;
+  width:min(58cqw, 84cqh); aspect-ratio:1;
+  text-decoration:none; color:inherit;
+  /* 0%, not 0: calc(-50% + 0) adds a unitless number to a percentage, which is
+     invalid, and an invalid transform is simply dropped -- the front cover sat
+     untransformed at the stage's centre point, hanging over the controls. The
+     two behind only worked because their offsets carried a unit. */
+  --dx:0%; --dy:-50%; --sc:1;
+  transform:translate(calc(-50% + var(--dx)), var(--dy)) scale(var(--sc));
+  transition:transform .42s cubic-bezier(.22,.61,.36,1), opacity .42s ease;
+  will-change:transform, opacity;
 }
-.dj-track:hover{background:color-mix(in srgb,var(--p-red) 12%,transparent); color:var(--fg)}
-/* The set rows are real links out to SoundCloud now, not fake transport buttons. */
-.dj-track{text-decoration:none}
-.dj-all{
-  display:inline-block; margin-top:.3em; text-decoration:none; color:var(--p-red);
-  font-family:var(--mono); font-size:.62rem; letter-spacing:.1em; text-transform:uppercase;
+/* The offsets are shares of the cover's own width, so the whole arrangement
+   scales with the panel. 33% pulls the raised covers in far enough to leave a
+   gutter at each edge for the side arrows: at 38% their outer edge sat within
+   2px of the stage and there was nowhere to put one. */
+.dj-slide[data-pos="0"]{--dy:-42%; --sc:1;   z-index:3; opacity:1}
+.dj-slide[data-pos="1"]{--dx:33%;  --dy:-62%; --sc:.84; z-index:2; opacity:.38}
+.dj-slide[data-pos="2"]{--dx:-33%; --dy:-62%; --sc:.84; z-index:2; opacity:.38}
+/* A fourth set would sit here: parked dead centre and invisible, so it fades
+   in from behind the front cover instead of flying in from nowhere. */
+.dj-slide[data-pos="far"]{--dy:-62%; --sc:.78; z-index:1; opacity:0}
+.dj-slide:not([data-pos="0"]){cursor:pointer}
+.dj-slide[data-pos="0"] .dj-art{box-shadow:0 14px 34px rgba(0,0,0,.34)}
+.dj-slide[data-pos="0"]:hover{--sc:1.03}
+/* display:block matters: this is a span, and width and height do nothing on an
+   inline box. Left inline it ignored both and the line box's descender space
+   made every cover 255x287 instead of square. */
+.dj-art{
+  display:block; position:relative; width:100%; height:100%; overflow:hidden;
+  border-radius:3px; border:1px solid var(--line); box-sizing:border-box;
+  /* A flat tone averaged off each cover, so a slow or missing image leaves a
+     plausible square instead of a hole. */
+  background:var(--art);
+  transition:box-shadow .3s ease;
 }
-.dj-all:hover{text-decoration:underline; text-underline-offset:3px}
-.dj-all:focus-visible{outline:2px solid var(--p-red); outline-offset:3px; border-radius:2px}
-.dj-track[aria-current="true"]{background:color-mix(in srgb,var(--p-red) 16%,transparent); color:var(--fg)}
-.dj-track .n{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-.dj-track .d{margin-left:auto; font-variant-numeric:tabular-nums; flex:0 0 auto; opacity:.75}
-.dj-track .eq{display:flex; gap:1px; align-items:flex-end; height:.9em; width:.9em; flex:0 0 auto}
-.dj-track .eq i{flex:1; background:var(--p-red); height:30%; border-radius:.5px}
-.dj-track[aria-current="true"].is-playing .eq i{animation:eq .9s ease-in-out infinite}
-.dj-track[aria-current="true"].is-playing .eq i:nth-child(2){animation-delay:.18s}
-.dj-track[aria-current="true"].is-playing .eq i:nth-child(3){animation-delay:.36s}
+.dj-art img{width:100%; height:100%; object-fit:cover; display:block}
+.dj-cap{
+  display:flex; align-items:center; gap:.7em; width:100%; flex:0 0 auto; margin:0;
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.08em; color:var(--fg-dim);
+}
+.dj-cap .n{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--fg)}
+.dj-cap .g{margin-left:auto; flex:0 0 auto; opacity:.8}
+/* Staggered at rest. All three at one height read as an ellipsis rather than
+   as bars, and they only animate while the front cover is hovered. */
+.dj-cap .eq{display:flex; gap:1px; align-items:flex-end; height:.9em; width:.9em; flex:0 0 auto}
+.dj-cap .eq i{flex:1; background:var(--p-red); border-radius:.5px}
+.dj-cap .eq i:nth-child(1){height:45%}
+.dj-cap .eq i:nth-child(2){height:85%}
+.dj-cap .eq i:nth-child(3){height:30%}
+.dj-car:hover .dj-cap .eq i{animation:eq .9s ease-in-out infinite}
+.dj-car:hover .dj-cap .eq i:nth-child(2){animation-delay:.18s}
+.dj-car:hover .dj-cap .eq i:nth-child(3){animation-delay:.36s}
 @keyframes eq{0%,100%{height:28%}50%{height:100%}}
+/* Arrows and dots on one centred row, as drawn. */
+.dj-meta{display:flex; align-items:center; justify-content:center; gap:13px; flex:0 0 auto}
+/* A second pair outboard of the raised covers, level with the stack. They sit
+   above the covers so a click near the edge never falls through to a link --
+   the mistake the old disabled arrows made. The independent translate property
+   does the centring so the :active scale cannot clobber it. */
+.dj-side{
+  position:absolute; top:50%; translate:0 -50%; z-index:4;
+  padding:10px 4px;
+}
+.dj-side.prev{left:0}
+.dj-side.next{right:0}
+.dj-arw{
+  appearance:none; border:0; background:none; padding:3px 2px; cursor:pointer;
+  color:var(--fg-dim); font-size:.72rem; line-height:1;
+  transition:color .2s ease, transform .15s ease;
+}
+.dj-arw:hover{color:var(--p-red)}
+.dj-arw:active{transform:scale(.85)}
+.dj-arw:focus-visible{outline:2px solid var(--p-red); outline-offset:3px; border-radius:2px}
+.dj-dots{display:flex; gap:7px}
+.dj-dots button{appearance:none; border:0; padding:0; width:7px; height:7px; border-radius:50%; background:var(--line); cursor:pointer; transition:background .2s}
+.dj-dots button:hover{background:var(--fg-dim)}
+.dj-dots button[aria-current="true"]{background:var(--p-red)}
+.dj-dots button:focus-visible{outline:2px solid var(--p-red); outline-offset:3px}
 
 
 
@@ -1147,6 +1259,27 @@ a{color:inherit}
 .port-hit:hover{opacity:.82}
 .port-hit:focus-visible{outline:2px solid var(--accent); outline-offset:10px}
 
+/* ---- portrait, light theme only ---- */
+@media (prefers-color-scheme:light){
+  :root:not([data-theme="dark"]) .port-front{color:transparent}
+  :root:not([data-theme="dark"]) .port-neg{display:block}
+  :root:not([data-theme="dark"]) .port-back{color:#0ABAB5}
+}
+/* Glyph art carries tone by ink density: a denser character means MORE ink. On
+   the dark theme more ink reads as brighter, which is how the portrait was
+   drawn; the same characters on a light page make highlights into shadows and
+   the figure reads as a photo negative. Rather than put the art on a dark plate,
+   light mode swaps in a second copy whose ramp is mirrored -- '.' becomes '@',
+   ':' becomes '*', and so on -- so dark ink on a light page lands the tones the
+   right way round. The silhouette slab doubles as the mask, so only the figure
+   is inverted and the surrounding space stays empty.
+   The original stays in the flow at color:transparent because it is what gives
+   the spinning container its size. */
+.port-neg{position:absolute; inset:0; transform:translateZ(11px); display:none; color:var(--fg)}
+:root[data-theme="light"] .port-front{color:transparent}
+:root[data-theme="light"] .port-neg{display:block}
+:root[data-theme="light"] .port-back{color:#0ABAB5}
+
 /* 0fr -> 1fr animates to the content's natural height, which a plain
    height:auto cannot do. */
 .arcade{display:grid; grid-template-rows:0fr; transition:grid-template-rows .65s cubic-bezier(.22,1,.36,1)}
@@ -1155,6 +1288,22 @@ a{color:inherit}
 .arcade-pad{padding-top:clamp(22px,3vw,34px); padding-bottom:0}
 .arcade-bar{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:14px}
 .arcade-hint{margin-left:12px; opacity:.6; letter-spacing:.1em}
+/* Only where there is no keyboard. Hold Duck to crouch, release to stand. */
+.arcade-pads{display:none}
+@media (hover:none), (pointer:coarse){
+  .arcade-pads{
+    display:flex; gap:10px; justify-content:center;
+    padding:12px clamp(16px,4vw,28px) 4px;
+  }
+  .arc-pad{
+    appearance:none; flex:1 1 0; max-width:180px; cursor:pointer;
+    padding:13px 0; border:1px solid var(--line); border-radius:3px;
+    background:var(--surface); color:var(--fg-dim);
+    font-family:var(--mono); font-size:.68rem; letter-spacing:.14em; text-transform:uppercase;
+    touch-action:manipulation; -webkit-user-select:none; user-select:none;
+  }
+  .arc-pad:active{background:var(--surface-2); color:var(--fg); border-color:var(--fg-dim)}
+}
 .arcade-x{
   appearance:none; cursor:pointer; background:none; border:1px solid var(--line);
   border-radius:3px; color:var(--fg-dim); font-family:var(--mono); font-size:.64rem;
@@ -1236,6 +1385,21 @@ a{color:inherit}
 @media (prefers-reduced-motion:reduce){
   .hint{transition:none}
   .hint-dot{animation:none}
+}
+/* On a phone the vertical word made the notch 263px tall, about a third of the
+   screen, for something that is only meant to be noticed out of the corner of
+   an eye. The dot carries it on its own, and it rides just under the nav rather
+   than halfway down the page. */
+@media (max-width:720px){
+  .hint{
+    --notch:26px; top:68px;
+    transform:translate(calc(100% - var(--notch)), 0);
+  }
+  .hint.on{transform:translate(0,0)}
+  /* align-items:stretch was sizing the tab to the panel behind it, so the notch
+     stayed 263px tall even closed. Off the stretch, it is its own size. */
+  .hint-tab{align-self:flex-start; height:40px; padding:0; gap:0}
+  .hint-tab-t{display:none}
 }
 
 .modal{
@@ -1610,10 +1774,62 @@ a{color:inherit}
   .sk-dname{font-size:1.02rem; margin-top:0}
   .sk-dfam{margin-top:0}
 }
-/* On a phone the card goes back under the table: there is no room to show both,
-   and a tap should leave the tiles where the thumb already is. */
+/* On a phone the grid alone is 712px of an 844px screen, so a card parked at
+   the end of it was off screen the moment you scrolled far enough to reach a
+   lower tile: every tap updated a card nobody could see. It docks to the
+   bottom of the screen instead, for as long as the table is in view.
+
+   position:sticky cannot do this here. body carries overflow-y and is the
+   scrolling element, and the card's grid area gives it almost no room to
+   travel, so it held for about 20px and then scrolled away like anything
+   else. A fixed dock toggled by an observer does not care which element is
+   doing the scrolling. */
 @media (max-width:560px){
-  .sk-detail{order:0; margin-top:14px}
+  .sk-detail{
+    order:0; margin-top:14px; min-height:0;
+    flex-direction:row; align-items:center; gap:11px; padding:9px 11px;
+    flex-wrap:nowrap;
+  }
+  /* The tile you just tapped already carries its number, so the card spends
+     that width on the name instead. */
+  .sk-dnum{display:none}
+  /* Child selectors, because the 860px rule is `.sk-detail > div`, which
+     outranks a bare class and was giving the badge a 180px flex-basis. Two
+     180px bases plus the gap exceeded a 390px screen, so the row wrapped and
+     the card came out 107px tall instead of 62. */
+  .sk-detail > .sk-dhead{flex:0 0 auto}
+  .sk-detail > .sk-dbody{flex:1 1 auto; min-width:0}
+  .sk-badge{width:42px; height:42px; font-size:1.05rem}
+  /* Mark on the left, name over family beside it: a list row rather than a
+     stack. Laid out as grid areas so no wrapper element is needed -- the logo
+     and its symbol fallback share one cell, and only ever one of the two is
+     displayed. */
+  .sk-dbody{
+    flex:1 1 auto; min-width:0; display:grid; align-items:center;
+    grid-template-columns:auto minmax(0,1fr);
+    grid-template-areas:"art name" "art fam";
+    column-gap:11px; row-gap:0; text-align:left; padding-bottom:0;
+  }
+  .sk-dlogo{grid-area:art; width:34px; height:34px; max-height:34px}
+  .sk-dmark{grid-area:art; width:34px; height:34px; font-size:1.3rem}
+  .sk-dname{
+    grid-area:name; font-size:1rem; margin-top:0; min-width:0;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .sk-dfam{grid-area:fam; margin-top:1px; font-size:.56rem}
+  .sk-detail.docked{
+    position:fixed; left:10px; right:10px; bottom:10px; z-index:40;
+    margin:0; width:auto;
+    background:var(--surface);
+    box-shadow:0 12px 30px -12px rgba(0,0,0,.55);
+  }
+  /* Room for the last row of tiles to be scrolled clear of the docked card. */
+  .sk-table{padding-bottom:84px}
+  /* Holds the gap open while the card is out of flow, so the page keeps its
+     height and the section below does not jump at the hand-off. 94px is the
+     card's 62, its 14px margin, and the 18px grid row gap that goes with it
+     when the grid drops to a single row. */
+  .sk-main.docking{padding-bottom:94px}
 }
 @media (max-width:560px){ .sk-table{grid-template-columns:repeat(4,minmax(0,1fr))} }
 
@@ -1634,10 +1850,16 @@ a{color:inherit}
       <a href="#contact">Contact</a>
     </div>
     <div class="session-wrap">
-      <button class="session" id="session" type="button" data-state="awake"
-              aria-describedby="session-pop" aria-expanded="false">
-        <span class="pip"></span><span class="clock">--:--</span><span class="sesh" id="session-sesh">&#8212;</span>
-      </button>
+      <div class="session" id="session" data-state="awake">
+        <button class="s-half s-me" id="session-me" type="button"
+                aria-describedby="session-pop" aria-expanded="false" aria-label="What Shree is probably doing">
+          <span class="pip"></span><span class="clock">--:--</span>
+        </button>
+        <button class="s-half s-mkt" id="session-mkt" type="button"
+                aria-describedby="session-pop" aria-expanded="false" aria-label="Which futures sessions are open">
+          <span class="sesh" id="session-sesh">&#8212;</span>
+        </button>
+      </div>
       <span class="session-pop" id="session-pop" role="tooltip" hidden></span>
       <button class="egg" id="egg" type="button" aria-expanded="false" aria-controls="tape" aria-label="Open the ticker tape" title="?">
         <svg viewBox="0 0 11 13" aria-hidden="true"><path d="M5.5.7c2.7 0 4.8 3.7 4.8 6.6 0 2.6-2 4.4-4.8 4.4S.7 9.9.7 7.3C.7 4.4 2.8.7 5.5.7Z"/></svg>
@@ -1655,14 +1877,29 @@ a{color:inherit}
     <div class="tape-win">
       <div class="tape-track">
         <div class="tape-set">
-          <span class="tape-item"><b>PREP</b> 142.80 <span class="up">&#9650; 2.14%</span></span>
-          <span class="tape-item"><b>TCKR</b> 98.35 <span class="up">&#9650; 0.87%</span></span>
-          <span class="tape-item"><b>RMND</b> 71.40 <span class="dn">&#9660; 0.42%</span></span>
-          <span class="tape-item"><b>JANUS</b> 55.20 <span class="up">&#9650; 4.10%</span></span>
-          <span class="tape-item"><b>GOL</b> 12.05 <span class="dn">&#9660; 1.80%</span></span>
-          <span class="tape-item"><b>SNTMT</b> 33.60 <span class="up">&#9650; 0.25%</span></span>
-          <span class="tape-item"><b>COFFEE</b> 4.75 <span class="up">&#9650; 6.30%</span></span>
           <span class="tape-item"><b>SLEEP</b> 3.20 <span class="dn">&#9660; 11.00%</span></span>
+          <span class="tape-item"><b>COFFEE</b> 4.75 <span class="up">&#9650; 6.30%</span></span>
+          <span class="tape-item"><b>MILES</b> 26.20 <span class="up">&#9650; 2.62%</span></span>
+          <span class="tape-item"><b>PACE</b> 7.45 <span class="dn">&#9660; 1.10%</span></span>
+          <span class="tape-item"><b>KNEES</b> 2.00 <span class="dn">&#9660; 3.40%</span></span>
+          <span class="tape-item"><b>WORDLE</b> 3.00 <span class="up">&#9650; 0.40%</span></span>
+          <span class="tape-item"><b>WORK</b> 9.05 <span class="up">&#9650; 1.70%</span></span>
+          <span class="tape-item"><b>INBOX</b> 0.00 <span class="dn">&#9660; 100.00%</span></span>
+          <span class="tape-item"><b>MEETINGS</b> 4.00 <span class="dn">&#9660; 2.20%</span></span>
+          <span class="tape-item"><b>SCOPE</b> 3.00 <span class="up">&#9650; 14.00%</span></span>
+          <span class="tape-item"><b>TABS</b> 47.00 <span class="up">&#9650; 9.80%</span></span>
+          <span class="tape-item"><b>BUGS</b> 1.00 <span class="dn">&#9660; 0.90%</span></span>
+          <span class="tape-item"><b>COMMITS</b> 8.00 <span class="up">&#9650; 3.10%</span></span>
+          <span class="tape-item"><b>TODOS</b> 212.0 <span class="up">&#9650; 5.60%</span></span>
+          <span class="tape-item"><b>DEPLOY</b> 1.00 <span class="up">&#9650; 0.70%</span></span>
+          <span class="tape-item"><b>EAT.SWT</b> 2.00 <span class="dn">&#9660; 18.00%</span></span>
+          <span class="tape-item"><b>EAT.PRO</b> 180.0 <span class="up">&#9650; 4.00%</span></span>
+          <span class="tape-item"><b>LAUNDRY</b> 3.00 <span class="up">&#9650; 2.00%</span></span>
+          <span class="tape-item"><b>PATIENCE</b> 0.75 <span class="dn">&#9660; 7.20%</span></span>
+          <span class="tape-item"><b>GOLF</b> 72.00 <span class="dn">&#9660; 1.40%</span></span>
+          <span class="tape-item"><b>SUNDAY</b> 1.00 <span class="dn">&#9660; 5.00%</span></span>
+          <span class="tape-item"><b>CHANGE</b> 1.00 <span class="up">&#9650; 12.00%</span></span>
+          <span class="tape-item"><b>OFFERS</b> 1.00 <span class="up">&#9650; 8.00%</span></span>
           <span class="tape-item"><b>SHREE</b> 999.99 <span class="up">&#9650; HIRING</span></span>
         </div>
       </div>
@@ -1759,6 +1996,50 @@ a{color:inherit}
                @%%@@@@@@@#:-+#*#%@         
             #*#@@@%%@###***                
              +++#*#@                       </pre>
+          <pre class="port-face port-neg" aria-hidden="true">  *%@@@@%                                  
+ %%%%@@@@@@                                
+%%####@@#@%@                               
+ %+=-+%@@##@                               
+  :··-+%#%+%@                              
+ --==-:-=-:+++=======                      
+ -=+#=·:--=:·++====--====                  
+   :=-:--+*.,%+============                
+    ---=+*-.,#*=======++++=+==             
+     =+%=-·..@*+++==+%%*+*+++++=           
+     @+%%==+.=%+++**%%**+*+***+++=         
+      ****,..·**+*%*%*****+*+****+++       
+      *%**+...+@%%%%%%******++*****++      
+      +*@%%+..-#%%%@@%%%****++**+**++*     
+      +*@#@%*·.+#@%%@@@%%***+**+++****+    
+      **@@@@ #+-*%#####@%%%+****+******+   
+      *%@@%@   #%++*%@###%*****++*%%****++ 
+      *%@@%%     @+==++*%@@*******%******++
+      *%@@%       @%*==++%#*+*****%*****+* 
+      *@@%%       %%@%*++%#***+***%****+*  
+      *%@%%      *==+%@@%%#%******%*****   
+     +*@@@       --===+%#@#%+++********    
+     +*@%%      --==++**%%%%+*********     
+      ==+      --==+**%@@%@++*******       
+      -=+      =++++**%%%%  +****+*        
+      ====-   ==++++++**%   =+%%           
+        +:    ==++++****    ·:--           
+               +++++****%%  :·::           
+                *++++***%%%+--==           
+                 *++****@***=              
+                  +*****%*****             
+                  ++*****%*++*+            
+                   +*****@%%@%*+           
+                   *=**+   @%##*+          
+                    ++*+=   %@%*+-         
+                    +++*+    *++=::        
+                   ==**=-   +%*+=-:-+      
+                  =:·++--==++**++===+      
+                :-:,:-==========*%*+       
+           -:···:::-=++***:.,,,            
+              -·········,·++·:·.,.         
+               .,,.......·*+-·:·,.         
+            ·:·...,,.···:::                
+             ---·:·.                       </pre>
           <pre class="port-face port-slab" style="--z:7px">  #######                                  
  ##########                                
 ############                               
@@ -2042,7 +2323,7 @@ a{color:inherit}
   <div class="arcade-in">
     <div class="wrap arcade-pad">
       <div class="arcade-bar">
-        <p class="lbl">My fav easter egg <span class="arcade-hint">space to jump &middot; down to duck</span></p>
+        <p class="lbl"><span id="arc-title">My fav easter egg</span> <span class="arcade-hint" id="arcade-hint">space to jump &middot; down to duck</span></p>
         <p class="arcade-score"><span id="arc-hi"></span><b id="arc-score">00000</b></p>
         <button class="arcade-x" id="arcade-x" type="button">Close</button>
       </div>
@@ -2050,6 +2331,12 @@ a{color:inherit}
     <!-- Same box as .xp (max-width, centred, NO gutter) so the canvas bottom
          lines up exactly with the hairline that is the ground. -->
     <div class="arcade-rail"><canvas id="arc-cv" class="arcade-cv"></canvas></div>
+    <!-- Touch has no spacebar and no arrow keys. Two explicit buttons beat a
+         hidden gesture for something nobody has been taught how to play. -->
+    <div class="arcade-pads" id="arcade-pads" aria-hidden="true">
+      <button class="arc-pad" id="arc-jump" type="button">&#9650; Jump</button>
+      <button class="arc-pad" id="arc-duck" type="button">&#9660; Duck</button>
+    </div>
   </div>
 </div>
 
@@ -2297,6 +2584,7 @@ a{color:inherit}
 
   <div class="lab-stage" id="lab-stage">
     <button class="pixegg" id="egg-3cxix" type="button" aria-label="3CXIX — coming soon"><span class="pixegg-cue" aria-hidden="true">3CXIX</span></button>
+    <button class="pixegg" id="egg-cloud" type="button" aria-label="A smiling cloud in the pixel art"><span class="pixegg-cue" aria-hidden="true">?</span></button>
     <img class="lab-bg" src="assets/pixel-room.gif" alt="Pixel-art scene of a retro gaming bedroom crowded with console-era memorabilia" loading="lazy">
     <div class="acc" id="acc">
       <div class="acc-panels">
@@ -2316,17 +2604,20 @@ a{color:inherit}
                 <span class="tool"><i><img src="assets/logos/claude.svg" alt="" loading="lazy"></i>Claude</span>
                 <span class="tool"><i><img src="assets/logos/higgsfield.svg" alt="" loading="lazy"></i>Higgsfield</span>
                 <span class="tool"><i><img src="assets/logos/capcut.svg" alt="" loading="lazy"></i>CapCut</span>
-                <span class="tool mark"><img src="assets/logos/eleven-labs.svg" alt="ElevenLabs" loading="lazy"></span>
+              </div>
+              <div class="acc-tools">
+                <span class="tool"><i><img class="bars" src="assets/logos/eleven-labs.svg" alt="" loading="lazy"></i>ElevenLabs</span>
                 <span class="tool"><i><img src="assets/logos/youtube.svg" alt="" loading="lazy"></i>YouTube</span>
               </div>
             </div>
             <div class="acc-prev">
               <span>TCKRs</span>
-              <div class="prev-soon">
-                <div class="frames" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-                <span class="soon-tag">preview coming soon!</span>
+              <div class="frames" role="img" aria-label="Four stills from the Walmart film: the five-and-dime in Newport, the lease being stamped, the landlord's son holding the store keys, and opening day at the first Walmart">
+                <i><img src="assets/tckrs/slab-1-store.jpg" alt="" loading="lazy"></i>
+                <i><img src="assets/tckrs/slab-2-stamp.jpg" alt="" loading="lazy"></i>
+                <i><img src="assets/tckrs/slab-3-keys.jpg" alt="" loading="lazy"></i>
+                <i><img src="assets/tckrs/slab-4-walmart.jpg" alt="" loading="lazy"></i>
               </div>
-              <span>Short form, vertical</span>
             </div>
           </div>
         </div>
@@ -2336,24 +2627,45 @@ a{color:inherit}
             <div>
               <div class="acc-meta"><span class="lbl">Decks · Mixes</span></div>
               <h3 class="acc-h">DJ Karnival</h3>
-              <p class="acc-d">My last name is Nadkarni, so Karnival wrote itself. Two sets pulling in opposite directions, put together in VirtualDJ and FL Studio.</p>
+              <p class="acc-d">My last name is Nadkarni, so Karnival wrote itself.<br>Two sets pulling in opposite directions<br>Created and put together using VirtualDJ and FL Studio</p>
               <ul class="acc-feats">
-              <li>Recorded start to finish</li>
-              <li>Hosted on SoundCloud</li>
+              <li>&#8230; more sets on SoundCloud</li>
               </ul>
               <div class="acc-tools">
                 <span class="tool"><i><img src="assets/logos/virtualdj.svg" alt="" loading="lazy"></i>VirtualDJ</span>
                 <span class="tool"><i><img src="assets/logos/fl-studio.svg" alt="" loading="lazy"></i>FL Studio</span>
               </div>
-              <div class="acc-chips"><span>SoundCloud</span></div>
+              <div class="acc-chips"><span class="has-logo"><img src="assets/logos/soundcloud.svg" alt="" loading="lazy">SoundCloud</span></div>
             </div>
             <div class="acc-prev">
               <div class="dj-head"><span class="dot"></span><span>Sets</span><span class="r">SoundCloud</span></div>
-              <ul class="dj-list">
-                <li><a class="dj-track" href="https://soundcloud.com/shree-nadkarni-1/newyear-s-decree-mmxv" target="_blank" rel="noopener"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span class="n">NewYear&#39;s Decree MMXV</span><span class="d">House / EDM</span></a></li>
-                <li><a class="dj-track" href="https://soundcloud.com/shree-nadkarni-1/summer-mix-2015" target="_blank" rel="noopener"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span class="n">Summer Mix 2015</span><span class="d">Hip hop / Rap</span></a></li>
-              </ul>
-              <a class="dj-all" href="https://soundcloud.com/shree-nadkarni-1/sets/djs-decrees" target="_blank" rel="noopener">All sets on SoundCloud →</a>
+              <div class="dj-car">
+                <div class="dj-stage" id="dj-stage">
+                  <button class="dj-arw dj-side prev" data-nav="prev" type="button" aria-label="Previous cover">&#9666;</button>
+                  <button class="dj-arw dj-side next" data-nav="next" type="button" aria-label="Next cover">&#9656;</button>
+                  <a class="dj-slide" data-title="Summer Mix 2015" data-genre="Hip hop / Rap"
+                     target="_blank" rel="noopener" style="--art:#667152"
+                     href="https://soundcloud.com/shree-nadkarni-1/summer-mix-2015">
+                    <span class="dj-art"><img src="assets/covers/summer-mix-2015.jpg" alt="Cover art for The Summer Mix 2015: palm fronds behind the title in pink script" loading="lazy"></span>
+                  </a>
+                  <a class="dj-slide" data-title="NewYear&#39;s Decree MMXV" data-genre="House / EDM"
+                     target="_blank" rel="noopener" style="--art:#515451"
+                     href="https://soundcloud.com/shree-nadkarni-1/newyear-s-decree-mmxv">
+                    <span class="dj-art"><img src="assets/covers/decree-mmxv.jpg" alt="Cover art for NewYear&#39;s Decree MMXV: a lagoon at dusk with overwater villas" loading="lazy"></span>
+                  </a>
+                  <a class="dj-slide" data-title="All sets" data-genre="DJ&#39;s Decrees &#8594;"
+                     target="_blank" rel="noopener" style="--art:#414141"
+                     href="https://soundcloud.com/shree-nadkarni-1/sets/djs-decrees">
+                    <span class="dj-art"><img src="assets/covers/karnival.jpg" alt="The DJ Karnival logo: a dancing couple in black and white under the name in colour" loading="lazy"></span>
+                  </a>
+                </div>
+                <p class="dj-cap" aria-live="polite"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span class="n" id="dj-name">Summer Mix 2015</span><span class="g" id="dj-gen">Hip hop / Rap</span></p>
+                <div class="dj-meta">
+                  <button class="dj-arw" id="dj-prev" data-nav="prev" type="button" aria-label="Previous cover">&#9666;</button>
+                  <span class="dj-dots" id="dj-dots"></span>
+                  <button class="dj-arw" id="dj-next" data-nav="next" type="button" aria-label="Next cover">&#9656;</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2385,7 +2697,7 @@ a{color:inherit}
           </div>
         </div>
 
-        <div class="acc-body" id="ab-1">
+        <div class="acc-body locked" id="ab-1">
           <div class="acc-in">
             <div>
               <div class="acc-meta"><span class="lbl">Ask · Learn · Write up</span></div>
@@ -2410,21 +2722,20 @@ a{color:inherit}
                   </div>
                 </div>
               </div>
-              <p class="acc-d">We go through life taking a lot for granted, including how much time we spend searching for answers, or waiting on someone who can help us find them.</p>
-              <p class="acc-d">In a corporate world that prizes speed and delivery, asking questions can feel like a luxury. Engineers know about rubber <button class="duck" id="duck" type="button" aria-label="duck">&#129414;</button> debugging.</p>
-              <p class="acc-d">AI became the perfect thought buddy, providing the second thought. It isn’t only about working faster. It’s about making room for curiosity, one question at a time.</p>
-              <ul class="acc-feats">
-              <li>Substack link coming soon</li>
-              </ul>
+              <p class="acc-d">We go through life taking so much for granted, often simply because we’ve never had the time to stop, ask questions, and understand the things around us. And even when curiosity strikes, it’s not always clear where to turn or who can help us find the answers.</p>
+              <p class="acc-d">In my experience, especially in the corporate world, where speed and delivery are so highly valued, taking a step back to ask questions can feel like a luxury. <button class="duck" id="duck" type="button" aria-label="duck">&#129414;</button></p>
+              <p class="acc-d">AI has become the perfect thought partner: a second mind to bounce ideas off, challenge assumptions, and help me see things from a different perspective. It’s not just about helping me work faster or more effectively. It’s also given me the freedom to indulge my curiosity beyond work, finally exploring the questions I’ve always wondered about but never had the time, resources, or right person to ask.</p>
+              <p class="acc-d">If you enjoy exploring the world around you, going down rabbit holes, and learning about things you never knew you wanted to know, come join me on Substack.</p>
             </div>
             </div>
         </div>
       </div>
+      <p class="sr-only" id="egg-say" role="status" aria-live="polite"></p>
       <div class="acc-rail">
         <button class="acc-spine" type="button" aria-expanded="false" aria-controls="ab-2"><span class="acc-n">01</span><span class="acc-vt">TCKRs</span></button>
         <button class="acc-spine" type="button" aria-expanded="false" aria-controls="ab-0"><span class="acc-n">02</span><span class="acc-vt">DJ Sets</span></button>
         <button class="acc-spine" type="button" aria-expanded="false" aria-controls="ab-3"><span class="acc-n">03</span><span class="acc-vt">Charts</span></button>
-        <button class="acc-spine" type="button" aria-expanded="false" aria-controls="ab-1"><span class="acc-n">04</span><span class="acc-vt">Second Thought</span></button>
+        <button class="acc-spine locked" type="button" aria-expanded="false" aria-controls="ab-1"><span class="acc-n">04</span><span class="acc-vt">Second Thought</span></button>
       </div>
     </div>
   </div>
@@ -2684,25 +2995,46 @@ a{color:inherit}
   }
   requestAnimationFrame(tick);
 
-  /* The chip: a dot for Shree's day, the time, and which futures session has the
-     book. Everything is computed in America/New_York no matter where the viewer
-     is -- "awake" is about his clock, not theirs, and the futures calendar runs
-     on New York hours. */
-  var chip = document.getElementById('session');
-  var sesh = document.getElementById('session-sesh');
-  var pop  = document.getElementById('session-pop');
+  /* The chip answers two questions, so it has two halves. The left is Shree's
+     day -- a dot for awake/at the desk/asleep, the ET time, and on hover a guess
+     at what he is doing. The right is the market's day: which futures sessions
+     are open, and on hover their hours. Everything is computed in
+     America/New_York wherever the viewer happens to be. */
+  var chip   = document.getElementById('session');
+  var meBtn  = document.getElementById('session-me');
+  var mktBtn = document.getElementById('session-mkt');
+  var sesh   = document.getElementById('session-sesh');
+  var pop    = document.getElementById('session-pop');
 
+  /* Each line completes "He's probably ___", bucketed by the hour in ET. */
   var DOING = {
-    // 05:30-09:00
-    morning: ['on a run', 'doing a pre-market scan', 'playing the daily wordle',
-              'whipping up some breakfast', 'sleeping in'],
-    // 17:00-22:00
+    morning: ['on a run', 'looking at pre-market scan', 'doing the daily wordle',
+              'whipping up some breakfast', 'sleeping in'],                       // 05:30-09:00
+    amWork:  ['busy with work', 'dreaming about lunch', 'cleaning his inbox',
+              'getting ready for a meeting'],                                     // 09:00-12:00
+    pmWork:  ['busy with work', 'building something', 'on an important call',
+              "wondering if it's Friday yet"],                                    // 12:00-17:00
     evening: ['at the gym', 'decompressing with some video games', 'surfing the web',
-              'getting ready for bed'],
-    // 09:00-17:00 and overnight were not specified -- placeholders, easy to swap.
-    desk:  ['heads down on something', 'building something', 'deep in a side project'],
-    night: ['asleep']
+              'making dinner', 'watching TV'],                                    // 17:00-22:00
+    night:   ['asleep'],                                                          // 22:00-05:30
+    // Weekends ignore the working-hours split entirely.
+    saturday: ['out with friends', 'not thinking about work', 'on a long run'],
+    sunday:   ['out golfing', 'doing Sunday chores', 'fighting the Sunday scaries']
   };
+
+  /* Futures sessions in ET. They deliberately overlap -- Asia's tail runs into
+     London's open, London's into New York's -- and when two are live the chip
+     shows their initials joined. */
+  var SESSIONS = [
+    { label:'Asia',   short:'A', open:1080, close:240  },  // 18:00 - 04:00
+    { label:'London', short:'L', open:180,  close:720  },  // 03:00 - 12:00
+    { label:'NYC AM', short:'N', open:570,  close:780  },  // 09:30 - 13:00
+    { label:'NYC PM', short:'P', open:780,  close:1020 }   // 13:00 - 17:00
+  ];
+  function hhmm(m){ m=((m%1440)+1440)%1440; return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); }
+  function within(mins, open, close){
+    return open < close ? (mins >= open && mins < close) : (mins >= open || mins < close);
+  }
 
   function etParts(){
     return new Intl.DateTimeFormat('en-US', {
@@ -2710,18 +3042,20 @@ a{color:inherit}
       weekday: 'short', hour: '2-digit', minute: '2-digit'
     }).formatToParts(new Date()).reduce(function(o, p){ o[p.type] = p.value; return o; }, {});
   }
-
-  // Futures, ET. The week opens Sunday 18:00 and closes Friday 17:00, with an
-  // hour's halt at 17:00 every day in between.
-  function futures(day, mins){
-    if(day === 'Sat') return 'Weekend';
-    if(day === 'Fri' && mins >= 1020) return 'Weekend';
-    if(day === 'Sun' && mins < 1080) return 'Weekend';
-    if(mins >= 1020 && mins < 1080) return 'Break';
-    if(mins >= 1080 || mins < 180) return 'Asia';
-    if(mins < 570) return 'London';
-    if(mins < 780) return 'NYC AM';
-    return 'NYC PM';
+  // The week opens Sunday 18:00 and closes Friday 17:00.
+  function weekendShut(day, mins){
+    return day === 'Sat' || (day === 'Fri' && mins >= 1020) || (day === 'Sun' && mins < 1080);
+  }
+  function live(day, mins){
+    if(weekendShut(day, mins)) return [];
+    if(mins >= 1020 && mins < 1080) return [];        // the daily hour's halt
+    return SESSIONS.filter(function(x){ return within(mins, x.open, x.close); });
+  }
+  function marketLabel(day, mins){
+    var on = live(day, mins);
+    if(!on.length) return weekendShut(day, mins) ? 'Weekend' : 'Break';
+    if(on.length === 1) return on[0].label;
+    return on.map(function(x){ return x.short; }).join(' + ');
   }
 
   function dayState(day, mins){
@@ -2730,16 +3064,19 @@ a{color:inherit}
     if(!weekend && mins >= 540 && mins < 1020) return 'active';       // 09:00 - 17:00, weekdays
     return 'awake';
   }
-  function bucket(mins){
-    if(mins >= 330 && mins < 540) return 'morning';
-    if(mins >= 1020 && mins < 1320) return 'evening';
-    if(mins >= 540 && mins < 1020) return 'desk';
-    return 'night';
+  function bucket(day, mins){
+    // Night wins on any day: the dot is purple then, and the line should agree.
+    if(mins >= 1320 || mins < 330)  return 'night';     // 22:00 - 05:30
+    if(day === 'Sat') return 'saturday';
+    if(day === 'Sun') return 'sunday';
+    if(mins < 540)  return 'morning';                   // 05:30 - 09:00
+    if(mins < 720)  return 'amWork';                    // 09:00 - 12:00
+    if(mins < 1020) return 'pmWork';                    // 12:00 - 17:00
+    return 'evening';                                   // 17:00 - 22:00
   }
-
   var lastGuess = '';
-  function guess(mins){
-    var list = DOING[bucket(mins)];
+  function guess(day, mins){
+    var list = DOING[bucket(day, mins)];
     if(list.length < 2) return list[0];
     var pick;
     do { pick = list[Math.floor(Math.random() * list.length)]; } while(pick === lastGuess);
@@ -2752,42 +3089,64 @@ a{color:inherit}
     var h = parseInt(p.hour, 10) % 24, m = parseInt(p.minute, 10);
     var mins = h * 60 + m;
     chip.dataset.state = dayState(p.weekday, mins);
-    chip.querySelector('.clock').textContent =
-      String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ' ET';
-    if(sesh) sesh.textContent = futures(p.weekday, mins);
-    chip.setAttribute('aria-label',
-      'Shree is ' + dayState(p.weekday, mins) + '. ' + String(h).padStart(2, '0') + ':' +
-      String(m).padStart(2, '0') + ' in New York, ' + futures(p.weekday, mins) + ' futures session.');
+    chip.querySelector('.clock').textContent = hhmm(mins) + ' ET';
+    if(sesh) sesh.textContent = marketLabel(p.weekday, mins);
   }
 
-  function openPop(){
+  function now(){
     var p = etParts();
-    var mins = (parseInt(p.hour, 10) % 24) * 60 + parseInt(p.minute, 10);
-    pop.textContent = "He's probably " + guess(mins);
+    return { day: p.weekday, mins: (parseInt(p.hour,10) % 24) * 60 + parseInt(p.minute,10) };
+  }
+  function openPop(which){
+    var t = now();
+    if(which === 'mkt'){
+      var on = live(t.day, t.mins);
+      pop.innerHTML = '';
+      if(!on.length){
+        pop.textContent = weekendShut(t.day, t.mins)
+          ? 'Futures are shut for the weekend. They reopen Sunday 18:00 ET.'
+          : 'Daily break, 17:00 to 18:00 ET.';
+      } else {
+        on.forEach(function(x){
+          var row = document.createElement('span');
+          row.className = 'pop-row';
+          row.innerHTML = '<b></b><i></i>';
+          row.querySelector('b').textContent = x.label;
+          row.querySelector('i').textContent = hhmm(x.open) + ' \u2013 ' + hhmm(x.close) + ' ET';
+          pop.appendChild(row);
+        });
+      }
+    } else {
+      pop.textContent = "He's probably " + guess(t.day, t.mins);
+    }
     pop.hidden = false;
-    chip.setAttribute('aria-expanded', 'true');
+    (which === 'mkt' ? mktBtn : meBtn).setAttribute('aria-expanded', 'true');
   }
   function closePop(){
     pop.hidden = true;
-    chip.setAttribute('aria-expanded', 'false');
+    meBtn.setAttribute('aria-expanded', 'false');
+    mktBtn.setAttribute('aria-expanded', 'false');
   }
 
   if(chip && pop){
     var fine = matchMedia('(hover:hover) and (pointer:fine)');
-    chip.addEventListener('pointerenter', function(e){
-      if(e.pointerType === 'touch' || !fine.matches) return;
-      openPop();
-    });
-    chip.addEventListener('pointerleave', function(){ if(fine.matches) closePop(); });
-    // A tap focuses the chip before it clicks it, so an unconditional focus
-    // handler opened the popover and the click immediately toggled it shut.
-    // :focus-visible is the keyboard case, which is the one that needs this.
-    chip.addEventListener('focus', function(){ if(chip.matches(':focus-visible')) openPop(); });
-    chip.addEventListener('blur', closePop);
-    // Touch has no hover, so the chip toggles. A second tap puts it away.
-    chip.addEventListener('click', function(){
-      if(fine.matches) return;
-      pop.hidden ? openPop() : closePop();
+    [[meBtn,'me'],[mktBtn,'mkt']].forEach(function(pair){
+      var btn = pair[0], which = pair[1];
+      btn.addEventListener('pointerenter', function(e){
+        if(e.pointerType === 'touch' || !fine.matches) return;
+        openPop(which);
+      });
+      btn.addEventListener('pointerleave', function(){ if(fine.matches) closePop(); });
+      // A tap focuses before it clicks, so an unconditional focus handler would
+      // open the popover and the click would shut it again on the same tap.
+      btn.addEventListener('focus', function(){ if(btn.matches(':focus-visible')) openPop(which); });
+      btn.addEventListener('blur', closePop);
+      btn.addEventListener('click', function(){
+        if(fine.matches) return;
+        var mine = btn.getAttribute('aria-expanded') === 'true';
+        closePop();
+        if(!mine) openPop(which);
+      });
     });
     document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closePop(); });
   }
@@ -2963,10 +3322,22 @@ a{color:inherit}
   var subs = Array.prototype.slice.call(document.querySelectorAll('[data-pane]'));
   var panes = Array.prototype.slice.call(document.querySelectorAll('.xp-pane'));
   var meta = document.getElementById('xp-meta');
+  // Counted off the table rather than typed. Splitting Mock Services into
+  // WireMock and Parrot took it from 30 to 31 and this label stayed behind, so
+  // it now reads the tiles instead of trusting a number someone has to update.
+  function tableMeta(){
+    var els = document.querySelectorAll('.el');
+    if(!els.length) return '';
+    var fams = {}, n = 0;
+    Array.prototype.forEach.call(els, function(e){
+      if(e.dataset.fam && !fams[e.dataset.fam]){ fams[e.dataset.fam] = 1; n++; }
+    });
+    return els.length + ' elements · ' + n + ' families';
+  }
   var META = {
     work: 'American Express · 2017 — 2026',
     edu: 'Georgia Tech · 2012 — 2016',
-    skills: '30 elements · 6 families'
+    skills: tableMeta() || '31 elements · 6 families'
   };
   if(!nav || !sub || !tops.length) return;
 
@@ -3545,29 +3916,50 @@ a{color:inherit}
 </script>
 
 <script>
-/* Keep the easter-egg hotspot glued to the arcade screen inside the pixel art.
-   The art is 1920x1080 and the target sits at (283,691) measuring 196x159, but
-   object-fit:cover scales and centre-crops it, so the box is recomputed from the
-   image's rendered rect whenever the stage resizes. */
+/* Keep the easter-egg hotspots glued to their targets inside the pixel art.
+   The art is 1920x1080 and object-fit:cover scales and centre-crops it by an
+   amount that depends on the stage's aspect ratio, so every box is recomputed
+   from the image's own rendered rect rather than set as a percentage, which
+   would drift off target as the viewport changes.
+
+   Coordinates are in the art's own pixels. The cloud's box was measured off
+   the sprite's connected pixels across all 64 frames, so it stays on target
+   while the art animates. */
 (function(){
   var stage = document.getElementById('lab-stage');
-  var egg = document.getElementById('egg-3cxix');
   var img = stage ? stage.querySelector('.lab-bg') : null;
-  if(!stage || !egg || !img) return;
+  if(!stage || !img) return;
 
-  var NW = 1920, NH = 1080, X = 283, Y = 691, W = 196, H = 159;
+  var NW = 1920, NH = 1080;
+  var SPOTS = [
+    { el: document.getElementById('egg-3cxix'), x: 283, y: 691, w: 196, h: 159 },
+    // The smiling cloud, padded a little so it is a comfortable target rather
+    // than a pixel-perfect one.
+    { el: document.getElementById('egg-cloud'), x: 877, y: 207, w: 123, h: 101 }
+  ].filter(function(s){ return s.el; });
+  if(!SPOTS.length) return;
+
+  // On a phone the whole scene is about a fifth of its desktop size, which took
+  // the cloud down to a 23x19 target. Below this the box grows around the
+  // target's centre so it still covers it, rather than from its top left.
+  var MIN = 44;
 
   function place(){
     var sr = stage.getBoundingClientRect(), ir = img.getBoundingClientRect();
-    if(!ir.width || !ir.height){ egg.style.display = 'none'; return; }
-    egg.style.display = '';
-    var k = Math.max(ir.width / NW, ir.height / NH);
-    var ox = (ir.left - sr.left) + (ir.width - NW * k) / 2;
-    var oy = (ir.top - sr.top) + (ir.height - NH * k) / 2;
-    egg.style.left = (ox + X * k) + 'px';
-    egg.style.top = (oy + Y * k) + 'px';
-    egg.style.width = (W * k) + 'px';
-    egg.style.height = (H * k) + 'px';
+    var live = !!(ir.width && ir.height);
+    var k = live ? Math.max(ir.width / NW, ir.height / NH) : 0;
+    var ox = live ? (ir.left - sr.left) + (ir.width - NW * k) / 2 : 0;
+    var oy = live ? (ir.top - sr.top) + (ir.height - NH * k) / 2 : 0;
+    SPOTS.forEach(function(s){
+      if(!live){ s.el.style.display = 'none'; return; }
+      s.el.style.display = '';
+      var w = Math.max(s.w * k, MIN), h = Math.max(s.h * k, MIN);
+      var cx = ox + (s.x + s.w / 2) * k, cy = oy + (s.y + s.h / 2) * k;
+      s.el.style.left = (cx - w / 2) + 'px';
+      s.el.style.top = (cy - h / 2) + 'px';
+      s.el.style.width = w + 'px';
+      s.el.style.height = h + 'px';
+    });
   }
 
   if(img.complete) place(); else img.addEventListener('load', place);
@@ -3577,6 +3969,86 @@ a{color:inherit}
     window.addEventListener('resize', place);
   }
   window.addEventListener('load', place);
+})();
+
+/* Dock the element card to the bottom of a phone screen while the skills table
+   is on screen, so a tap always has somewhere visible to report to. Undocking
+   once the table has scrolled away puts it back in flow, which is off screen by
+   then, so the hand-off is never seen. */
+(function(){
+  var table = document.getElementById('sk-table');
+  var card  = document.getElementById('sk-detail');
+  if(!table || !card || !window.IntersectionObserver) return;
+
+  var main = card.parentNode;
+  var phone = matchMedia('(max-width:560px)');
+  var BAND = 86;        // the card's own height plus its breathing room
+  var raf = 0;
+
+  /* Docked only while the table still reaches down into the band the card
+     occupies. The moment its last row clears that line the card drops back
+     into flow directly under the table, which is where the eye already is, so
+     it never ends up floating over the next section.
+
+     An IntersectionObserver cannot express this on its own: its margins test
+     where the table's edges are relative to the root, not whether the table
+     still reaches a particular line, so the card kept its dock with 400px of
+     the next section showing beneath it. */
+  function update(){
+    raf = 0;
+    var on = false;
+    if(phone.matches){
+      var r = table.getBoundingClientRect();
+      var line = window.innerHeight - BAND;
+      on = r.top < line && r.bottom > line;
+    }
+    card.classList.toggle('docked', on);
+    // Docking takes the card out of flow, which would shorten the page under
+    // the reader's thumb. The parent holds the gap open so the total height
+    // never changes and nothing below jumps.
+    main.classList.toggle('docking', on);
+  }
+
+  function schedule(){ if(!raf) raf = requestAnimationFrame(update); }
+  addEventListener('scroll', schedule, { passive: true });
+  addEventListener('resize', schedule);
+  if(phone.addEventListener) phone.addEventListener('change', schedule);
+  else if(phone.addListener) phone.addListener(schedule);
+  update();
+})();
+
+/* The cloud unlocks the fourth panel. The spine and the body are both in the
+   DOM all along, just not displayed, so the rail's spine-to-panel index
+   mapping never changes and nothing else has to know this happened. */
+(function(){
+  var egg = document.getElementById('egg-cloud');
+  var acc = document.getElementById('acc');
+  var body = document.getElementById('ab-1');
+  if(!egg || !acc || !body) return;
+  var spine = acc.querySelector('.acc-spine[aria-controls="ab-1"]');
+  if(!spine) return;
+
+  egg.addEventListener('click', function(){
+    if(acc.classList.contains('unlocked')) return;
+    acc.classList.add('unlocked');
+    spine.classList.remove('locked');
+    body.classList.remove('locked');
+    spine.classList.add('found');
+    body.classList.add('found');
+    // The hotspot has nothing left to do, so it stops being a target.
+    egg.disabled = true;
+    egg.setAttribute('aria-label', 'Found: the fourth panel is now on the rail');
+    var cue = egg.querySelector('.pixegg-cue');
+    if(cue) cue.remove();
+    [spine, body].forEach(function(el){
+      el.addEventListener('animationend', function(){ el.classList.remove('found'); }, { once: true });
+    });
+    // Say it for anyone not watching the rail. The region is in the markup
+    // from the start, because a live region appended at the same moment its
+    // text arrives is usually missed.
+    var say = document.getElementById('egg-say');
+    if(say) say.textContent = 'A fourth panel, Second Thought, has appeared on the rail.';
+  });
 })();
 </script>
 
@@ -3942,8 +4414,18 @@ a{color:inherit}
     cv.width = W * dpr; cv.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.imageSmoothingEnabled = false;
+    /* Line him up just past the word EGG in the heading. The heading and the
+       canvas sit in different containers, so the offset is measured rather
+       than guessed, and it re-measures whenever the panel does. */
+    var t = document.getElementById('arc-title');
+    if(t){
+      var tr = t.getBoundingClientRect();
+      if(tr.width) SKX = Math.max(84, Math.min(Math.round(W * 0.42), Math.round(tr.right - r.left + 12)));
+    }
   }
 
+  /* The visitor's own best, kept on their device. Nothing shows until they have
+     finished a run, so a first-timer sees no bar to clear. */
   var KEY = 'sn-skate-best';
   function loadBest(){ try { return parseInt(localStorage.getItem(KEY), 10) || 0; } catch(e){ return 0; } }
   function saveBest(v){ try { localStorage.setItem(KEY, String(v)); } catch(e){} }
@@ -3971,6 +4453,53 @@ a{color:inherit}
      The score blinks at the same instant for anyone not watching the track. */
   /* Posts are not stored: their world position is k*SPAN, so the ones on
      screen are derived from dist each frame and nothing accumulates. */
+  /* Two layers behind the run, the way the dino game uses clouds: further back
+     means slower. Positions are derived from dist rather than stored and moved,
+     so nothing accumulates drift and a pause never slides them. */
+  function rnd(k){ var x = Math.sin(k * 127.1) * 43758.5453; return x - Math.floor(x); }
+  function layer(spacing, par, alpha, draw){
+    var off = dist * par;
+    var lo = Math.floor((off - 140) / spacing), hi = Math.ceil((off + W + 140) / spacing);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = dim; ctx.strokeStyle = dim; ctx.lineWidth = 1;
+    for(var k = lo; k <= hi; k++) draw(Math.round(k * spacing - off), k);
+    ctx.restore();
+  }
+  /* Outline cloud: a flat base with three scalloped humps, small-big-medium.
+     Drawn on the half pixel so a 1px stroke lands crisp instead of blurring
+     across two rows. */
+  function drawCloud(x, y, r){
+    var r1 = r * 0.62, r2 = r, r3 = r * 0.78;
+    var b = Math.round(y + r2) + 0.5, tail = r * 0.9;
+    var x1 = x + tail + r1, x2 = x1 + r1 + r2, x3 = x2 + r2 + r3;
+    ctx.beginPath();
+    ctx.moveTo(x, b);
+    ctx.lineTo(x1 - r1, b);
+    ctx.arc(x1, b, r1, Math.PI, 2 * Math.PI);
+    ctx.arc(x2, b, r2, Math.PI, 2 * Math.PI);
+    ctx.arc(x3, b, r3, Math.PI, 2 * Math.PI);
+    ctx.lineTo(x3 + r3 + tail, b);
+    ctx.stroke();
+  }
+  /* Street light: pole, a short arm bending over, and the lamp head under it. */
+  function drawLamp(x, h){
+    var top = H - h;
+    ctx.fillRect(x, top + 3, 2, h - 3);
+    ctx.fillRect(x, top + 1, 3, 2);
+    ctx.fillRect(x + 3, top, 6, 2);
+    ctx.fillRect(x + 9, top + 2, 5, 2);
+    ctx.fillRect(x + 10, top + 4, 3, 1);
+  }
+  function drawBack(){
+    layer(280, 0.16, 0.34, function(x, k){
+      drawCloud(x, 8 + Math.floor(rnd(k) * 22), 7 + Math.floor(rnd(k + 7) * 6));
+    });
+    layer(430, 0.42, 0.26, function(x, k){
+      drawLamp(x, 58 + Math.floor(rnd(k + 3) * 26));
+    });
+  }
+
   function drawMarks(){
     var lo = Math.max(1, Math.ceil((dist - SKX - 30) / SPAN));
     var hi = Math.floor((dist + (W - SKX)) / SPAN);
@@ -4093,12 +4622,14 @@ a{color:inherit}
       bob = (y === 0 && Math.floor(dist / 9) % 2 === 1) ? 1 : 0;
     }
 
+    drawBack();
     drawMarks();
     for(var j = 0; j < obs.length; j++) drawObs(obs[j]);
     drawSkater(SKX, H - y - bob, duck && y === 0);
 
-    if(state === 'idle') label('PRESS SPACE', 'space to jump  ·  down to duck');
-    if(state === 'over') label('GAME OVER', 'space to go again');
+    if(state === 'idle') label(TOUCH ? 'TAP TO START' : 'PRESS SPACE TO START',
+                                TOUCH ? 'tap to jump  ·  hold DUCK to crouch' : 'space to jump  ·  down to duck');
+    if(state === 'over') label('GAME OVER', TOUCH ? 'tap to go again' : 'space to go again');
 
     sEl.textContent = pad(score());
     hEl.textContent = best ? 'HI ' + pad(best) : '';
@@ -4135,6 +4666,23 @@ a{color:inherit}
   hit.addEventListener('click', function(){ open ? closePanel() : openPanel(); });
   shut.addEventListener('click', closePanel);
   cv.addEventListener('pointerdown', function(e){ e.preventDefault(); jump(); });
+
+  /* Touch controls. Jump is a tap; Duck is held, so it releases on pointerup,
+     on pointercancel, and if the finger slides off the button. */
+  var TOUCH = matchMedia('(hover:none), (pointer:coarse)').matches;
+  var padJ = document.getElementById('arc-jump');
+  var padD = document.getElementById('arc-duck');
+  var hint = document.getElementById('arcade-hint');
+  if(TOUCH && hint) hint.textContent = 'tap to jump \u00b7 hold duck to crouch';
+  if(padJ) padJ.addEventListener('pointerdown', function(e){ e.preventDefault(); jump(); });
+  if(padD){
+    var hold = function(e){ e.preventDefault(); if(state === 'run'){ duck = true; if(y > 0 && vy < 0) vy = 0; } };
+    var letGo = function(){ duck = false; };
+    padD.addEventListener('pointerdown', hold);
+    ['pointerup','pointercancel','pointerleave'].forEach(function(t){ padD.addEventListener(t, letGo); });
+    // A crouch must never outlive the panel or the tab.
+    document.addEventListener('visibilitychange', letGo);
+  }
 
   document.addEventListener('keydown', function(e){
     if(!open) return;
@@ -4462,5 +5010,71 @@ a{color:inherit}
       next = (next + 1) % TOPICS.length;
     });
   });
+})();
+
+/* DJ Karnival covers.
+   A stack rather than a strip: every cover sits in the same spot and its
+   position relative to the current one decides the transform, so the whole
+   thing is one data-pos attribute per cover and CSS does the moving.
+   It wraps. The previous build disabled the arrow at each end, and a disabled
+   arrow is opacity:0 with pointer-events:none -- so the click went straight
+   through it into the cover's link and sent you off to SoundCloud. There are
+   no ends any more, so there is nothing to click through. */
+(function(){
+  var stage = document.getElementById('dj-stage');
+  var dots  = document.getElementById('dj-dots');
+  var nameEl = document.getElementById('dj-name');
+  var genEl  = document.getElementById('dj-gen');
+  if(!stage || !dots) return;
+
+  var slides = Array.prototype.slice.call(stage.querySelectorAll('.dj-slide'));
+  var n = slides.length;
+  if(!n) return;
+  var at = 0;
+
+  slides.forEach(function(s, i){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('aria-label', s.dataset.title || ('Cover ' + (i + 1)));
+    b.addEventListener('click', function(){ go(i); });
+    dots.appendChild(b);
+
+    // Only the cover in front follows its link. Clicking one of the two
+    // behind brings it forward instead, which is what it looks like it does.
+    s.addEventListener('click', function(e){
+      if(i !== at){ e.preventDefault(); go(i); }
+    });
+  });
+
+  function paint(){
+    slides.forEach(function(s, i){
+      var rel = (i - at + n) % n;
+      s.dataset.pos = rel === 0 ? '0' : rel === 1 ? '1' : rel === n - 1 ? '2' : 'far';
+      // Anything parked out of sight should be out of the tab order too.
+      if(rel !== 0 && rel !== 1 && rel !== n - 1) s.setAttribute('tabindex', '-1');
+      else s.removeAttribute('tabindex');
+    });
+    Array.prototype.forEach.call(dots.children, function(d, j){
+      d.setAttribute('aria-current', j === at ? 'true' : 'false');
+    });
+    var cur = slides[at];
+    if(nameEl) nameEl.textContent = cur.dataset.title || '';
+    if(genEl)  genEl.textContent  = cur.dataset.genre || '';
+  }
+
+  function go(i){ at = (i + n) % n; paint(); }   // wraps both ways
+
+  // Two pairs of arrows now: one flanking the stack, one in the row below.
+  // Binding by data-nav means another pair would just work.
+  Array.prototype.forEach.call(document.querySelectorAll('.dj-car [data-nav]'), function(btn){
+    var step = btn.dataset.nav === 'prev' ? -1 : 1;
+    btn.addEventListener('click', function(){ go(at + step); });
+  });
+  stage.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowRight'){ e.preventDefault(); go(at + 1); }
+    if(e.key === 'ArrowLeft'){  e.preventDefault(); go(at - 1); }
+  });
+
+  paint();
 })();
 </script>
