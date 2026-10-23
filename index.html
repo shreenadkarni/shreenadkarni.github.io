@@ -29,7 +29,7 @@ try{ var t=localStorage.getItem('theme'); if(t==='light'||t==='dark') document.d
 <meta name="twitter:image" content="https://shreenadkarni.github.io/assets/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,800;1,6..72,400;1,6..72,600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,800;1,6..72,400;1,6..72,600&family=UnifrakturMaguntia&display=swap">
 
 <style>
 /* Layout: gutter-bound text blocks punctuated by full-bleed, infinitely cycling tile rails — one rail per project. */
@@ -109,10 +109,51 @@ a{color:inherit}
 .nav-in{display:flex; align-items:center; gap:var(--nav-gap); padding-block:14px}
 .mark{font-family:var(--display); font-weight:800; font-size:1.05rem; letter-spacing:-.03em; white-space:nowrap}
 .mark b{color:var(--accent)}
+/* The name is a button for the Sherlock egg, but it keeps the plain cursor and
+   no hover state: nothing about it says "click me", which is the joke. */
+.mark-btn{appearance:none; background:none; border:0; padding:0; margin:0; font:inherit; color:inherit; cursor:default; border-radius:2px}
+.mark-btn:focus-visible{outline:2px solid var(--accent); outline-offset:4px}
+.mark-btn.wiggle{animation:markwiggle .5s ease}
+@keyframes markwiggle{20%{transform:rotate(-4deg)} 45%{transform:rotate(3deg)} 70%{transform:rotate(-2deg)} 100%{transform:none}}
+
+/* The dock: a card pinned to the bottom of the screen. The skills card already
+   docks here on a phone; the Sherlock toast uses it everywhere, and the
+   standings card moves into it on a phone so it is never under a thumb or off
+   the side. */
+.toast{
+  position:fixed; left:50%; bottom:max(14px, env(safe-area-inset-bottom)); z-index:70;
+  width:min(460px, calc(100% - 20px)); display:flex; align-items:flex-start; gap:12px;
+  padding:13px 14px 13px 16px; background:var(--surface); color:var(--fg);
+  border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:3px;
+  box-shadow:0 18px 40px -16px rgba(0,0,0,.6);
+  transform:translate(-50%, calc(100% + 30px)); opacity:0; pointer-events:none;
+  transition:transform .42s cubic-bezier(.2,.9,.3,1.15), opacity .2s ease;
+}
+.toast.on{transform:translate(-50%,0); opacity:1; pointer-events:auto}
+.toast-ic{font-size:1.5rem; line-height:1; flex:none; margin-top:1px}
+.toast-k{font-family:var(--mono); font-size:.58rem; letter-spacing:.18em; text-transform:uppercase; color:var(--accent)}
+.toast-t{font-size:.95rem; line-height:1.45; margin-top:3px}
+.toast-x{
+  appearance:none; flex:none; margin-left:auto; cursor:pointer; background:none;
+  border:1px solid var(--line); border-radius:50%; width:26px; height:26px; color:var(--fg-dim);
+  font-family:var(--mono); font-size:.7rem; line-height:1;
+}
+.toast-x:hover{color:var(--fg); border-color:var(--fg-dim)}
+.toast-x:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+@media (prefers-reduced-motion:reduce){ .toast{transition:opacity .2s ease} }
 .nav-links{display:flex; gap:var(--nav-gap); margin-left:auto}
 .nav-links a{font-family:var(--mono); font-size:.7rem; letter-spacing:.12em; text-transform:uppercase; text-decoration:none; color:var(--fg-dim); transition:color .18s}
 .nav-links a:hover{color:var(--fg)}
-@media (max-width:720px){ .nav-links{display:none} .session-wrap{margin-left:auto} }
+@media (max-width:750px){ .nav-links{display:none} .session-wrap{margin-left:auto} }
+/* 751-860 (an upright iPad among them): the five links, both chip halves and
+   the toggle did not fit, and the toggle hung ~100px off the right edge. The
+   futures half goes first, as it already does on a phone, and the gaps close up. */
+@media (min-width:751px) and (max-width:860px){
+  .nav{--nav-gap:10px}
+  .nav-links{gap:12px}
+  .nav-links a{letter-spacing:.06em}
+  .s-mkt{display:none}
+}
 
 .session-wrap{position:relative; display:flex; align-items:center; gap:6px; flex:0 0 auto}
 
@@ -197,9 +238,10 @@ a{color:inherit}
 .session-wrap:hover .egg, .egg:focus-visible, .egg[aria-expanded="true"]{opacity:1; transform:none; pointer-events:auto}
 /* A touch device fires a hover state on the first tap and the click only on the
    second, so anything revealed by :hover costs an extra tap. Where there is no
-   hover, the egg is simply always there and the first tap does what it says. */
+   hover, the egg stays invisible but live: a tap on the empty spot beside the
+   chip opens the tape in one go, and it only shows once the tape is open. */
 @media (hover:none){
-  .egg{opacity:1; transform:none; pointer-events:auto}
+  .egg{pointer-events:auto}
 }
 .egg:hover svg{fill:var(--fg)}
 .egg:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
@@ -283,6 +325,8 @@ a{color:inherit}
   border-bottom:2px solid transparent; transition:border-color .2s ease;
 }
 .tw:hover, .tw[aria-expanded="true"]{border-bottom-color:currentColor}
+/* Held, not tapped, on a phone: no iOS callout or text selection on a long press. */
+.tw{-webkit-touch-callout:none; -webkit-user-select:none; user-select:none}
 .tw:focus{outline:none}
 .tw:focus-visible{outline:2px solid currentColor; outline-offset:4px; border-radius:2px}
 .tw-celt{font-family:var(--body); font-style:italic; font-weight:600; letter-spacing:-.01em; color:var(--celt)}
@@ -322,6 +366,17 @@ a{color:inherit}
 .stand-line{font-size:.92rem; color:var(--fg); margin-top:3px}
 .stand-asof{margin-left:auto; align-self:flex-start; font-family:var(--mono); font-size:.54rem; letter-spacing:.1em; color:var(--fg-dim); white-space:nowrap}
 @media (max-width:620px){ .stand-asof{display:none} }
+/* On a phone the card leaves the headline and docks at the bottom of the
+   screen, the same spot the skills card uses, so a tap on a team word always
+   lands somewhere visible and nothing hangs off the side. */
+@media (max-width:620px){
+  .standcard{
+    position:fixed; top:auto; left:10px; right:10px; bottom:max(10px, env(safe-area-inset-bottom));
+    max-width:none; z-index:45; transform:translateY(calc(100% + 24px));
+    box-shadow:0 12px 30px -12px rgba(0,0,0,.55);
+  }
+  .standcard.on{transform:none}
+}
 .hero-sub{max-width:54ch; margin-top:clamp(20px,2.6vw,30px); color:var(--fg-dim); font-size:1.02em}
 .hero-meta{display:flex; flex-wrap:wrap; gap:10px 26px; margin-top:clamp(24px,3vw,36px)}
 
@@ -804,6 +859,120 @@ a{color:inherit}
   animation:pulse 2.4s infinite;
 }
 
+
+/* ---------- Hidden Panel Found: the cloud's prize, a 2x2 of doors ----------
+   The panel keeps the rail's language (purple, hairlines, mono labels); each
+   tile is a door into its own modal. The fourth is a reserved slot, drawn as
+   an empty dashed frame so it reads as "space left on purpose". */
+#ab-1 .acc-in{grid-template-columns:1fr; grid-template-rows:auto minmax(0,1fr); align-items:stretch; gap:clamp(12px,1.6vw,18px)}
+.hp-head{display:flex; align-items:baseline; justify-content:space-between; gap:14px; flex-wrap:wrap}
+.hp-head .acc-meta{margin:0}
+.hp-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); grid-auto-rows:minmax(0,1fr); gap:clamp(8px,1.1vw,12px); min-height:0}
+.hp-tile{
+  appearance:none; cursor:pointer; min-width:0; min-height:96px; position:relative;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  padding:14px; border:1px solid var(--line); border-radius:3px; color:var(--fg);
+  background:color-mix(in srgb,var(--surface) 70%,transparent); font:inherit;
+  transition:border-color .2s, background .2s, transform .18s ease;
+}
+.hp-tile:hover{border-color:color-mix(in srgb,var(--p-purple) 70%,var(--line)); background:color-mix(in srgb,var(--p-purple) 10%,var(--surface)); transform:translateY(-2px)}
+.hp-tile:focus-visible{outline:2px solid var(--p-purple); outline-offset:2px}
+.hp-mark{display:block; width:auto; height:clamp(30px,3.4vw,44px); color:var(--p-purple)}
+.hp-t{font-family:var(--display); font-weight:800; font-size:clamp(1rem,1.5vw,1.3rem); letter-spacing:-.02em; line-height:1}
+.hp-s{font-family:var(--mono); font-size:.56rem; letter-spacing:.16em; text-transform:uppercase; color:var(--fg-dim)}
+.hp-3c .hp-t{letter-spacing:.14em}
+.hp-empty{
+  display:grid; place-items:center; min-height:96px; border:1.5px dashed var(--line); border-radius:3px;
+  color:var(--fg-dim); font-family:var(--mono); font-size:1.6rem; font-weight:300; line-height:1; opacity:.8;
+}
+@media (max-width:760px){ .hp-tile, .hp-empty{min-height:120px} }
+
+/* ---------- Second Thought: a page from a journal ----------
+   Ruled paper whatever the site theme, because it is an object on the desk,
+   not a surface of the page. Lines are 28px and so is the type's line-height,
+   so the writing sits on them; paragraphs indent instead of spacing, which is
+   how a hand-written page breaks and what keeps every line on a rule. */
+.modal-box.journal{
+  /* Aged paper, not printer paper: the first pass at #F3EBD7 glared against
+     the dark page and made the body copy harder to hold. */
+  --paper:#DDD2BA; --rule:#B4BDC4; --ink:#26211B; --margin:#C2766C;
+  width:min(700px,100%); position:relative; padding:28px clamp(22px,4vw,44px) 28px clamp(48px,7vw,74px);
+  background:
+    linear-gradient(90deg, transparent calc(clamp(48px,7vw,74px) - 14px), var(--margin) calc(clamp(48px,7vw,74px) - 14px) calc(clamp(48px,7vw,74px) - 13px), transparent 0),
+    repeating-linear-gradient(transparent 0 27px, var(--rule) 27px 28px),
+    var(--paper);
+  background-attachment:local;
+  color:var(--ink); border:0; border-radius:2px 6px 6px 2px;
+  box-shadow:0 30px 80px -30px #000, inset 6px 0 10px -8px rgba(0,0,0,.35);
+}
+.journal .modal-top{margin-bottom:0; height:56px; align-items:center}
+.journal .modal-x{color:#6B6253; border-color:#BDB29A; background:transparent}
+.journal .modal-x:hover{color:var(--ink); border-color:var(--ink)}
+.j-lock{display:flex; align-items:center; gap:16px}
+.j-lock .st-mark{width:clamp(58px,8vw,84px); color:#5E3BB5}
+.j-lock .thought{--surface:var(--paper); width:100%; max-width:none; margin:0}
+.j-lock .st-logo{width:100%; max-width:none; margin:0}
+.j-eyebrow{font-family:var(--mono); font-size:.6rem; letter-spacing:.18em; text-transform:uppercase; color:#8A7F6A; line-height:28px}
+.modal-box.journal h3{font-family:var(--body); font-style:italic; font-weight:600; font-size:clamp(1.5rem,3.2vw,2rem); line-height:28px; letter-spacing:-.01em; color:var(--ink)}
+.j-body{margin-top:28px}
+.j-body p{font-family:var(--body); font-size:1.02rem; line-height:28px; margin:0; color:var(--ink)}
+.j-body p + p{text-indent:2em}
+.j-sub{
+  display:inline-flex; align-items:center; gap:10px; margin-top:28px; height:28px;
+  font-family:var(--mono); font-size:.66rem; letter-spacing:.14em; text-transform:uppercase;
+  color:#5E3BB5; text-decoration:none; border-bottom:1px dashed #5E3BB5;
+}
+.j-sub[aria-disabled="true"]{cursor:default; opacity:.75}
+.j-sub em{font-style:normal; color:#8A7F6A; letter-spacing:.1em}
+.journal .duck:focus-visible{outline-color:#5E3BB5}
+
+/* ---------- 3CXIX: a small card framed in an outlined vine ---------- */
+.modal-box.tn{width:min(400px,100%); aspect-ratio:3/2; padding:0; position:relative; overflow:visible; display:grid; place-items:center; text-align:center; border:0; border-radius:10px}
+.tn-frame{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
+.tn-vine{fill:none; stroke:color-mix(in srgb,var(--p-green) 80%,var(--fg-dim)); stroke-width:1.1}
+.tn-leaf{fill:var(--bg); stroke:var(--p-green); stroke-width:1; stroke-linejoin:round}
+.tn-flower ellipse, .tn-flower circle{fill:var(--bg); stroke:var(--p-red); stroke-width:1.1}
+.tn-flower circle{stroke:var(--accent)}
+.tn-in{position:relative; padding:24px}
+/* UnifrakturMaguntia is a true blackletter with no italic cut, so the slant
+   is the browser's synthesised oblique. Picked over Grenze Gotisch and
+   Pirata One side by side: the only one of the three that reads as goth. */
+.modal-box.tn .tn-in h3{font-family:"UnifrakturMaguntia",Georgia,serif; font-style:italic; font-weight:400;
+  font-size:clamp(1.9rem,6.4vw,2.6rem); letter-spacing:.01em; line-height:1; text-transform:lowercase}
+.tn-in p{margin-top:10px; font-family:var(--mono); font-size:.62rem; letter-spacing:.24em; text-transform:lowercase; color:var(--fg-dim)}
+/* Inside the vine, clear of the corner flower at every width. */
+.tn .modal-x{position:absolute; top:42px; right:46px; width:26px; height:26px; font-size:.7rem; z-index:2}
+
+/* ---------- The lock: a troll ---------- */
+.modal-box.lockbox{width:min(440px,100%); text-align:center; transition:width .35s ease}
+.lockbox.rolled{width:min(780px,100%)}
+.lk-btn{appearance:none; background:none; border:0; cursor:pointer; padding:10px; color:var(--fg); border-radius:6px}
+.lk-btn:focus-visible{outline:2px solid var(--p-purple); outline-offset:4px}
+.lk-btn svg{width:84px; height:auto; display:block; margin-inline:auto}
+.lk-btn:hover svg .lk-shackle{transform:translateY(-3px)}
+.lk-shackle{transition:transform .25s ease}
+.lk-btn.shake{animation:lkshake .4s ease}
+@keyframes lkshake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+.lk-cap{margin-top:12px; font-family:var(--mono); font-size:.62rem; letter-spacing:.2em; text-transform:uppercase; color:var(--fg-dim)}
+.lk-form{display:flex; gap:8px; margin:18px auto 0; max-width:320px}
+.lk-form input{
+  flex:1 1 auto; min-width:0; padding:11px 13px; border-radius:2px;
+  background:var(--surface); border:1px solid var(--line); color:var(--fg);
+  font-family:var(--mono); font-size:.8rem; letter-spacing:.12em;
+}
+.lk-form input:focus-visible{outline:2px solid var(--p-purple); outline-offset:1px}
+.lk-form button{
+  flex:0 0 auto; padding:11px 16px; border-radius:2px; cursor:pointer;
+  background:var(--p-purple); color:var(--bg); border:1px solid var(--p-purple);
+  font-family:var(--mono); font-size:.64rem; letter-spacing:.14em; text-transform:uppercase;
+}
+.lk-load{margin:22px auto 4px; max-width:320px}
+.lk-bar{height:6px; border-radius:999px; background:var(--surface-2); border:1px solid var(--line); overflow:hidden}
+.lk-bar i{display:block; height:100%; width:0; background:var(--p-purple); transition:width .12s linear}
+.lk-status{margin-top:10px; font-family:var(--mono); font-size:.62rem; letter-spacing:.16em; text-transform:uppercase; color:var(--fg-dim); min-height:1.2em}
+.lk-vid{aspect-ratio:16/9; width:100%; margin-top:4px; border:1px solid var(--line); border-radius:3px; background:#000; overflow:hidden}
+.lk-vid iframe{display:block; width:100%; height:100%; border:0}
+
 /* "View more projects" under the last project row */
 .proj-more{display:flex; justify-content:flex-end; padding-top:clamp(14px,2vw,24px)}
 .more-btn{
@@ -823,6 +992,24 @@ a{color:inherit}
 .lab-credit a{color:var(--fg-dim); text-decoration:underline; text-underline-offset:3px}
 .lab-credit a:hover{color:var(--accent)}
 
+/* The TCKRs poster and the DJ covers are the panels' best content, so they
+   survive the narrow breakpoints the other previews drop at. Overlaid on the
+   art (761-980) they keep the two-column card; stacked (760 and under) they sit
+   under the copy at a fixed size of their own. */
+@media (max-width:980px) and (min-width:761px){
+  /* The copy column wraps tall at this width, so the stage grows to hold it
+     beside the poster rather than making the panel scroll. */
+  .lab-stage{min-height:480px}
+  #ab-2 .acc-in, #ab-0 .acc-in{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
+  #ab-2 .acc-prev, #ab-0 .acc-prev{display:flex; min-height:0; max-height:100%; overflow:hidden}
+}
+@media (max-width:760px){
+  #ab-2 .acc-prev, #ab-0 .acc-prev{display:flex; margin-top:16px}
+  #ab-2 .frames{flex:none; aspect-ratio:1.3; width:100%; max-width:440px; margin-inline:auto}
+  #ab-0 .dj-car{flex:none}
+  #ab-0 .dj-stage{flex:none; height:min(68vw,280px)}
+  #ab-2 .acc-prev, #ab-0 .acc-prev{max-width:520px}
+}
 @media (max-width:980px){ .acc-in{grid-template-columns:1fr} .acc-prev{display:none}
   #ab-1 .acc-d{font-size:.78em; line-height:1.55}
   /* The other panels drop their preview at this width. This one's preview IS
@@ -855,6 +1042,41 @@ a{color:inherit}
      nothing left for the hint line to tell anyone. */
   #crtv-hint{display:none}
 }
+
+/* ---------- Run Shree Run!: opened from the arcade cabinet in the pixel art ----------
+   Same 0fr -> 1fr drawer as the skate game, so it unrolls between .crtv and
+   Contact instead of jumping in. The game is its own page in an iframe: it is
+   a React build with its own CSS, and a frame keeps its full-viewport layout
+   and key handling from leaking into this page. */
+.dash{display:grid; grid-template-rows:0fr; transition:grid-template-rows .65s cubic-bezier(.22,1,.36,1)}
+.dash.on{grid-template-rows:1fr}
+.dash-in{overflow:hidden; min-height:0}
+.dash-pad{padding-block:clamp(22px,3vw,34px) clamp(34px,5vw,56px)}
+.dash-bar{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:14px}
+.dash-hint{margin-left:12px; opacity:.6; letter-spacing:.1em}
+.dash-frame{
+  display:block; width:100%; height:clamp(520px,78vh,760px); margin-inline:auto;
+  border:0; background:transparent; color-scheme:normal;
+}
+/* No black bars: the game page is transparent around the console, so the
+   frame stays full width and the site shows through either side of it.
+   (Trimming the frame to the console's width was tried and is a trap: below
+   640px the game switches to its phone layout, which changes the console's
+   size, which re-trims the frame, and it collapses.) */
+.dash-credit{
+  display:flex; align-items:center; justify-content:center; gap:.45em; flex-wrap:wrap;
+  margin-top:12px; text-align:center;
+  font-family:var(--mono); font-size:.66rem; letter-spacing:.08em; color:var(--fg-dim);
+}
+.dash-credit img{width:14px; height:14px; display:block}
+/* On a phone the game's own control row (four pads and BOOST) needs the full
+   screen width; inside the gutter it lost the end of BOOST at 390px. */
+@media (max-width:620px){
+  .dash-frame{height:min(82svh,700px); width:calc(100% + 2 * var(--gutter));
+              margin-inline:calc(-1 * var(--gutter))}
+  .dash-hint{display:none}
+}
+@media (prefers-reduced-motion:reduce){ .dash{transition:none} }
 
 /* ---------- contact ---------- */
 .contact{padding-block:clamp(50px,7vw,96px); border-top:1px solid var(--line)}
@@ -912,7 +1134,7 @@ a{color:inherit}
 }
 .th-pill{
   position:absolute; left:50%; top:50%; margin:0;
-  width:min(100%,250px); text-align:center;
+  width:min(100%,310px); text-align:center;
   padding:10px 20px; border:1px solid var(--line); border-radius:999px;
   background:color-mix(in srgb,var(--surface) 82%,transparent);
   color:var(--fg-dim); font-size:clamp(.78rem,1.05vw,.95rem); line-height:1.25;
@@ -1019,6 +1241,16 @@ a{color:inherit}
 .feat > span{
   min-width:0; overflow:hidden; white-space:nowrap; padding-left:.6em;
   font-family:var(--mono); font-size:.68rem; letter-spacing:.14em; color:var(--silver);
+}
+/* On a phone the line already fills the width, so unrolling sideways pushed
+   the credit off the right edge. There it drops in underneath instead: the
+   same 0fr -> 1fr trick on the row track, centred under the signature. */
+@media (max-width:620px){
+  .foot-sig{flex-direction:column; align-items:center}
+  .feat{grid-template-columns:1fr; grid-template-rows:0fr;
+        transition:grid-template-rows .38s cubic-bezier(.65,.05,.36,1), opacity .26s ease}
+  .foot-sig:hover .feat{grid-template-rows:1fr}
+  .feat > span{min-height:0; padding-left:0; padding-top:.5em}
 }
 .foot .lbl{
   text-transform:none;
@@ -1607,6 +1839,17 @@ a{color:inherit}
 .xp-list li{position:relative; padding-left:1.7em; color:var(--fg-dim); font-size:.97em}
 .xp-list li::before{content:"\25B9"; position:absolute; left:0; top:-.04em; color:var(--accent); font-size:1.05em}
 .xp-list b{color:var(--fg); font-weight:400; font-style:italic}
+/* Georgia Tech's Buzz under the education entry. Two files, one per theme:
+   the light-page cut has black outlines, the dark-page cut white ones. */
+.gt-buzz{margin-top:clamp(18px,2.4vw,28px); width:clamp(120px,14vw,170px)}
+.gt-buzz img{display:block; width:100%; height:auto}
+.gt-buzz .buzz-l{display:none}
+@media (prefers-color-scheme:light){
+  :root:not([data-theme="dark"]) .gt-buzz .buzz-l{display:block}
+  :root:not([data-theme="dark"]) .gt-buzz .buzz-d{display:none}
+}
+:root[data-theme="light"] .gt-buzz .buzz-l{display:block}
+:root[data-theme="light"] .gt-buzz .buzz-d{display:none}
 @keyframes xpin{from{opacity:0; transform:translateY(7px)} to{opacity:1; transform:none}}
 .xp-panel:not([hidden]){animation:xpin .3s ease both}
 /* The tab rail is 214px: the long team names wrap there and the row scrolls on a
@@ -1841,7 +2084,7 @@ a{color:inherit}
 
 <nav class="nav">
   <div class="wrap nav-in">
-    <span class="mark">Shree Nadkarni<b>.</b></span>
+    <span class="mark"><button class="mark-btn" id="mark-btn" type="button" aria-label="Shree Nadkarni">Shree Nadkarni<b>.</b></button></span>
     <div class="nav-links">
       <a href="#about">About</a>
       <a href="#experience">Experience</a>
@@ -2323,7 +2566,7 @@ a{color:inherit}
   <div class="arcade-in">
     <div class="wrap arcade-pad">
       <div class="arcade-bar">
-        <p class="lbl"><span id="arc-title">My fav easter egg</span> <span class="arcade-hint" id="arcade-hint">space to jump &middot; down to duck</span></p>
+        <p class="lbl"><span id="arc-title">My <span id="arc-fav">fav</span> easter egg</span> <span class="arcade-hint" id="arcade-hint">space to jump &middot; down to duck</span></p>
         <p class="arcade-score"><span id="arc-hi"></span><b id="arc-score">00000</b></p>
         <button class="arcade-x" id="arcade-x" type="button">Close</button>
       </div>
@@ -2428,6 +2671,12 @@ a{color:inherit}
           <ul class="xp-list">
             <li>Interned at American Express the summer before graduating, and joined full time after.</li>
           </ul>
+          <!-- Buzz, in two cuts: black outlines for the light page, white
+               outlines for the dark one. CSS shows whichever matches. -->
+          <div class="gt-buzz" role="img" aria-label="Buzz, the Georgia Tech Yellow Jacket, giving a thumbs up from the Ramblin' Wreck">
+            <img class="buzz-l" src="assets/logos/gt/buzz-light.png" alt="" width="269" height="306" loading="lazy">
+            <img class="buzz-d" src="assets/logos/gt/buzz-dark.png" alt="" width="274" height="312" loading="lazy">
+          </div>
         </div>
       </div>
     </div>
@@ -2583,7 +2832,7 @@ a{color:inherit}
   </div>
 
   <div class="lab-stage" id="lab-stage">
-    <button class="pixegg" id="egg-3cxix" type="button" aria-label="3CXIX — coming soon"><span class="pixegg-cue" aria-hidden="true">3CXIX</span></button>
+    <button class="pixegg" id="egg-3cxix" type="button" aria-controls="dash" aria-expanded="false" aria-label="Play Run Shree Run!"><span class="pixegg-cue" aria-hidden="true">Play</span></button>
     <button class="pixegg" id="egg-cloud" type="button" aria-label="A smiling cloud in the pixel art"><span class="pixegg-cue" aria-hidden="true">?</span></button>
     <img class="lab-bg" src="assets/pixel-room.gif" alt="Pixel-art scene of a retro gaming bedroom crowded with console-era memorabilia" loading="lazy">
     <div class="acc" id="acc">
@@ -2699,35 +2948,28 @@ a{color:inherit}
 
         <div class="acc-body locked" id="ab-1">
           <div class="acc-in">
-            <div>
-              <div class="acc-meta"><span class="lbl">Ask · Learn · Write up</span></div>
-              <div class="acc-htop">
-                <div class="acc-hgroup">
-                  <h3 class="acc-h">Second Thought</h3>
-                  <span class="acc-tag"><span class="pip" aria-hidden="true"></span>In progress</span>
-                </div>
-                <div class="acc-prev st-prev">
-                  <div class="st-mark">
-                    <!-- If the logo ever fails to load the merged bubbles below take
-                         over on their own, so the lockup is never left empty. -->
-                    <img class="st-logo" id="st-logo" src="assets/logos/second-thought.png" alt="Second Thought logo" width="387" height="256" hidden>
-                  <svg class="thought" id="st-placeholder" viewBox="0 0 130 104" role="img" aria-label="Two thought bubbles merged into one mark">
-                    <g fill="var(--surface)" stroke="currentColor" stroke-width="3.2">
-                      <ellipse cx="82" cy="36" rx="36" ry="25"/>
-                      <ellipse cx="50" cy="52" rx="36" ry="25"/>
-                      <circle cx="24" cy="82" r="7"/>
-                      <circle cx="11" cy="95" r="4"/>
-                    </g>
-                  </svg>
-                  </div>
-                </div>
+            <div class="hp-head">
+              <div class="acc-hgroup">
+                <div class="acc-meta"><span class="lbl">Hidden Panel Found</span></div>
+                <h3 class="acc-h">Curiosity in Practice</h3>
               </div>
-              <p class="acc-d">We go through life taking so much for granted, often simply because we’ve never had the time to stop, ask questions, and understand the things around us. And even when curiosity strikes, it’s not always clear where to turn or who can help us find the answers.</p>
-              <p class="acc-d">In my experience, especially in the corporate world, where speed and delivery are so highly valued, taking a step back to ask questions can feel like a luxury. <button class="duck" id="duck" type="button" aria-label="duck">&#129414;</button></p>
-              <p class="acc-d">AI has become the perfect thought partner: a second mind to bounce ideas off, challenge assumptions, and help me see things from a different perspective. It’s not just about helping me work faster or more effectively. It’s also given me the freedom to indulge my curiosity beyond work, finally exploring the questions I’ve always wondered about but never had the time, resources, or right person to ask.</p>
-              <p class="acc-d">If you enjoy exploring the world around you, going down rabbit holes, and learning about things you never knew you wanted to know, come join me on Substack.</p>
             </div>
+            <div class="hp-grid">
+              <button class="hp-tile" id="hp-st" type="button" aria-haspopup="dialog">
+                <svg class="hp-mark" viewBox="0 0 130 104" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="5"><ellipse cx="82" cy="36" rx="36" ry="25"/><ellipse cx="50" cy="52" rx="36" ry="25"/><circle cx="24" cy="82" r="7"/><circle cx="11" cy="95" r="4"/></g></svg>
+                <span class="hp-t">Second Thought</span><span class="hp-s">Open the journal</span>
+              </button>
+              <button class="hp-tile hp-3c" id="hp-3c" type="button" aria-haspopup="dialog">
+                <svg class="hp-mark" viewBox="0 0 48 40" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 34 C14 30 18 20 24 18 S36 10 44 4"/><path d="M14 27 C14 21 20 20 22 22 C20 25 17 28 14 27Z"/><path d="M30 14 C31 8 37 8 38 10 C36 13 33 15 30 14Z"/><g transform="translate(24 18)"><ellipse rx="3" ry="5" cy="-5"/><ellipse rx="3" ry="5" cy="-5" transform="rotate(72)"/><ellipse rx="3" ry="5" cy="-5" transform="rotate(144)"/><ellipse rx="3" ry="5" cy="-5" transform="rotate(216)"/><ellipse rx="3" ry="5" cy="-5" transform="rotate(288)"/></g></g></svg>
+                <span class="hp-t">3CXIX</span><span class="hp-s">Three nineteen</span>
+              </button>
+              <button class="hp-tile" id="hp-lock" type="button" aria-haspopup="dialog">
+                <svg class="hp-mark" viewBox="0 0 40 44" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="3"><path d="M11 20 V13 a9 9 0 0 1 18 0 V20"/><rect x="5" y="20" width="30" height="21" rx="3"/><path d="M20 28 v5"/></g></svg>
+                <span class="hp-t">Locked</span><span class="hp-s">Members only</span>
+              </button>
+              <div class="hp-empty" aria-hidden="true">+</div>
             </div>
+          </div>
         </div>
       </div>
       <p class="sr-only" id="egg-say" role="status" aria-live="polite"></p>
@@ -2735,12 +2977,27 @@ a{color:inherit}
         <button class="acc-spine" type="button" aria-expanded="false" aria-controls="ab-2"><span class="acc-n">01</span><span class="acc-vt">TCKRs</span></button>
         <button class="acc-spine" type="button" aria-expanded="false" aria-controls="ab-0"><span class="acc-n">02</span><span class="acc-vt">DJ Sets</span></button>
         <button class="acc-spine" type="button" aria-expanded="false" aria-controls="ab-3"><span class="acc-n">03</span><span class="acc-vt">Charts</span></button>
-        <button class="acc-spine locked" type="button" aria-expanded="false" aria-controls="ab-1"><span class="acc-n">04</span><span class="acc-vt">Second Thought</span></button>
+        <button class="acc-spine locked" type="button" aria-expanded="false" aria-controls="ab-1"><span class="acc-n">04</span><span class="acc-vt">Hidden Panel</span></button>
       </div>
     </div>
   </div>
   <p class="lab-credit">Pixel art by <a href="https://pixeljeff1995.artstation.com/" target="_blank" rel="noopener">Pixel Jeff</a></p>
 </section>
+
+<!-- Opened by the arcade cabinet in the pixel art. The frame has no src until
+     then, so the game, its sprites and its music cost nothing on page load. -->
+<div class="dash" id="dash">
+  <div class="dash-in">
+    <div class="wrap dash-pad">
+      <div class="dash-bar">
+        <p class="lbl">Run Shree Run! <span class="dash-hint">arrows or WASD to run &middot; space to boost &middot; P or Esc to pause</span></p>
+        <button class="arcade-x" id="dash-x" type="button">Close</button>
+      </div>
+      <iframe class="dash-frame" id="dash-frame" title="Run Shree Run!, a top-down marathon runner game" allow="autoplay; fullscreen" loading="lazy"></iframe>
+      <p class="dash-credit">Game made by Shree via <img src="assets/logos/google.svg" alt="Google" width="14" height="14"> Playground</p>
+    </div>
+  </div>
+</div>
 
 <div class="cur" id="cur" aria-hidden="true"><span></span></div>
 
@@ -2758,10 +3015,10 @@ a{color:inherit}
     </div>
     <div class="thoughts">
       <div class="th-stage" role="list" aria-label="Topics I would happily talk about">
-        <p class="th-pill" role="listitem" style="--i:0">Why manuals are coming back</p>
-        <p class="th-pill" role="listitem" style="--i:1">The death of the cheap car</p>
-        <p class="th-pill" role="listitem" style="--i:2">Hydrogen vs. EVs</p>
-        <p class="th-pill" role="listitem" style="--i:3">Time runs slower in orbit</p>
+        <p class="th-pill" role="listitem" style="--i:0">Would you buy a manual car?</p>
+        <p class="th-pill" role="listitem" style="--i:1">How is AI changing the workforce?</p>
+        <p class="th-pill" role="listitem" style="--i:2">The bond market runs things</p>
+        <p class="th-pill" role="listitem" style="--i:3">How does the Fed fight inflation?</p>
       </div>
     </div>
   </div>
@@ -2785,6 +3042,15 @@ a{color:inherit}
 </div>
 
 
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="toast-ic" aria-hidden="true">&#128373;&#65039;</span>
+  <div>
+    <p class="toast-k">Easter egg #0</p>
+    <p class="toast-t">Really? I mean, congrats Sherlock, but you thought all the Easter eggs were going to be this easy?</p>
+  </div>
+  <button class="toast-x" id="toast-x" type="button" aria-label="Dismiss">&#10005;</button>
+</div>
+
 <aside class="hint" id="hint">
   <button class="hint-tab" id="hint-tab" type="button" aria-expanded="false" aria-controls="hint-body">
     <span class="hint-dot" aria-hidden="true"></span>
@@ -2793,6 +3059,7 @@ a{color:inherit}
   <div class="hint-body" id="hint-body" inert>
     <p class="lbl">Before you scroll</p>
     <p>I took pride in building this site.</p>
+    <p>Best on desktop, but it works on mobile too.</p>
     <p>It's meant to be poked at.</p>
     <p>Hover over the headlines, click anything that looks clickable, &ldquo;flip the board&rdquo;.</p>
     <p>Have fun finding the easter eggs.</p>
@@ -2812,14 +3079,76 @@ a{color:inherit}
   </div>
 </div>
 
-<div class="modal" id="modal-3cxix" hidden>
-  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="m3-t">
+<div class="modal" id="modal-st" hidden>
+  <div class="modal-box journal" role="dialog" aria-modal="true" aria-labelledby="mst-t">
     <div class="modal-top">
-      <h3 id="m3-t">3CXIX</h3>
+      <div class="j-lock">
+        <div class="st-mark">
+          <!-- If the logo ever fails to load the merged bubbles take over on
+               their own, so the lockup is never left empty. -->
+          <img class="st-logo" id="st-logo" src="assets/logos/second-thought.png" alt="Second Thought logo" width="387" height="256" hidden>
+          <svg class="thought" id="st-placeholder" viewBox="0 0 130 104" role="img" aria-label="Two thought bubbles merged into one mark">
+            <g fill="var(--surface)" stroke="currentColor" stroke-width="3.2">
+              <ellipse cx="82" cy="36" rx="36" ry="25"/>
+              <ellipse cx="50" cy="52" rx="36" ry="25"/>
+              <circle cx="24" cy="82" r="7"/>
+              <circle cx="11" cy="95" r="4"/>
+            </g>
+          </svg>
+        </div>
+        <div>
+          <p class="j-eyebrow">Ask &middot; Learn &middot; Write up</p>
+          <h3 id="mst-t">Second Thought</h3>
+        </div>
+      </div>
       <button class="modal-x" type="button" data-close aria-label="Close">&#10005;</button>
     </div>
-    <p class="modal-note" style="margin-top:0; text-align:center">Line Dropping Soon</p>
-    <p class="three19">&mdash;&mdash;&mdash; three nineteen &mdash;&mdash;&mdash;</p>
+    <div class="j-body">
+      <p>We go through life taking so much for granted, often simply because we’ve never had the time to stop, ask questions, and understand the things around us. And even when curiosity strikes, it’s not always clear where to turn or who can help us find the answers.</p>
+      <p>In my experience, especially in the corporate world, where speed and delivery are so highly valued, taking a step back to ask questions can feel like a luxury. <button class="duck" id="duck" type="button" aria-label="duck">&#129414;</button></p>
+      <p>AI has become the perfect thought partner: a second mind to bounce ideas off, challenge assumptions, and help me see things from a different perspective. It’s not just about helping me work faster or more effectively. It’s also given me the freedom to indulge my curiosity beyond work, finally exploring the questions I’ve always wondered about but never had the time, resources, or right person to ask.</p>
+      <p>If you enjoy exploring the world around you, going down rabbit holes, and learning about things you never knew you wanted to know, come join me on Substack.</p>
+    </div>
+    <!-- SUBSTACK: swap the span for <a class="j-sub" href="https://YOUR.substack.com" target="_blank" rel="noopener">Read on Substack &rarr;</a> -->
+    <span class="j-sub" aria-disabled="true">Read on Substack &rarr; <em>link coming soon</em></span>
+  </div>
+</div>
+
+<div class="modal" id="modal-3c" hidden>
+  <div class="modal-box tn" role="dialog" aria-modal="true" aria-labelledby="m3c-t">
+    <svg class="tn-frame" viewBox="0 0 300 200" aria-hidden="true" focusable="false"><path class="tn-vine" d="M34.0,16.0 L35.9,17.2 L37.9,18.2 L39.8,18.9 L41.7,19.2 L43.7,19.1 L45.6,18.5 L47.5,17.6 L49.5,16.5 L51.4,15.3 L53.3,14.2 L55.3,13.3 L57.2,12.9 L59.1,12.8 L61.1,13.2 L63.0,14.0 L64.9,15.1 L66.9,16.3 L68.8,17.4 L70.7,18.4 L72.7,19.0 L74.6,19.2 L76.5,19.0 L78.5,18.3 L80.4,17.3 L82.3,16.2 L84.3,15.0 L86.2,14.0 L88.1,13.2 L90.1,12.8 L92.0,12.9 L93.9,13.4 L95.9,14.3 L97.8,15.4 L99.7,16.6 L101.7,17.7 L103.6,18.6 L105.5,19.1 L107.5,19.2 L109.4,18.8 L111.3,18.1 L113.3,17.1 L115.2,15.9 L117.1,14.7 L119.1,13.8 L121.0,13.1 L122.9,12.8 L124.9,13.0 L126.8,13.6 L128.7,14.5 L130.7,15.6 L132.6,16.8 L134.5,17.9 L136.5,18.7 L138.4,19.1 L140.3,19.1 L142.3,18.7 L144.2,17.9 L146.1,16.8 L148.1,15.6 L150.0,14.5 L151.9,13.6 L153.9,13.0 L155.8,12.8 L157.7,13.1 L159.7,13.8 L161.6,14.7 L163.5,15.9 L165.5,17.1 L167.4,18.1 L169.3,18.8 L171.3,19.2 L173.2,19.1 L175.1,18.6 L177.1,17.7 L179.0,16.6 L180.9,15.4 L182.9,14.3 L184.8,13.4 L186.7,12.9 L188.7,12.8 L190.6,13.2 L192.5,14.0 L194.5,15.0 L196.4,16.2 L198.3,17.3 L200.3,18.3 L202.2,19.0 L204.1,19.2 L206.1,19.0 L208.0,18.4 L209.9,17.4 L211.9,16.3 L213.8,15.1 L215.7,14.0 L217.7,13.2 L219.6,12.8 L221.5,12.9 L223.5,13.3 L225.4,14.2 L227.3,15.3 L229.3,16.5 L231.2,17.6 L233.1,18.5 L235.1,19.1 L237.0,19.2 L238.9,18.9 L240.9,18.2 L242.8,17.2 L244.7,16.0 L246.7,14.8 L248.6,13.8 L250.5,13.1 L252.5,12.8 L254.4,12.9 L256.3,13.5 L258.3,14.4 L260.2,15.5 L262.1,16.7 L264.1,17.8 L266.0,18.7 L267.7,19.2 L269.3,19.5 L271.0,19.6 L273.0,19.6 L275.1,19.5 L277.4,19.7 L279.7,20.3 L281.9,21.3 L283.8,22.8 L285.1,24.8 L285.8,27.1 L285.8,29.5 L285.2,31.8 L284.2,34.0 L283.0,35.9 L282.0,37.8 L281.2,39.7 L280.8,41.5 L280.9,43.4 L281.4,45.3 L282.3,47.2 L283.4,49.1 L284.6,51.0 L285.7,52.9 L286.6,54.7 L287.1,56.6 L287.2,58.5 L286.8,60.4 L286.1,62.3 L285.1,64.2 L283.9,66.1 L282.7,67.9 L281.8,69.8 L281.1,71.7 L280.8,73.6 L281.0,75.5 L281.6,77.4 L282.5,79.3 L283.6,81.1 L284.8,83.0 L285.9,84.9 L286.7,86.8 L287.1,88.7 L287.1,90.6 L286.7,92.5 L285.9,94.3 L284.8,96.2 L283.6,98.1 L282.5,100.0 L281.6,101.9 L281.0,103.8 L280.8,105.7 L281.1,107.5 L281.8,109.4 L282.7,111.3 L283.9,113.2 L285.1,115.1 L286.1,117.0 L286.8,118.9 L287.2,120.7 L287.1,122.6 L286.6,124.5 L285.7,126.4 L284.6,128.3 L283.4,130.2 L282.3,132.1 L281.4,133.9 L280.9,135.8 L280.8,137.7 L281.2,139.6 L282.0,141.5 L283.0,143.4 L284.2,145.3 L285.3,147.1 L286.3,149.0 L287.0,150.9 L287.2,152.8 L287.0,154.7 L286.4,156.6 L285.4,158.5 L284.3,160.3 L283.1,162.2 L282.0,164.1 L281.2,166.0 L280.7,167.7 L280.5,169.3 L280.5,171.1 L280.6,173.0 L280.6,175.2 L280.4,177.5 L279.8,179.8 L278.8,182.0 L277.2,183.8 L275.2,185.1 L272.9,185.7 L270.5,185.7 L268.1,185.1 L266.0,184.0 L264.1,182.8 L262.1,181.8 L260.2,181.1 L258.3,180.8 L256.3,180.9 L254.4,181.5 L252.5,182.4 L250.5,183.5 L248.6,184.7 L246.7,185.8 L244.7,186.7 L242.8,187.1 L240.9,187.2 L238.9,186.8 L237.0,186.0 L235.1,184.9 L233.1,183.7 L231.2,182.6 L229.3,181.6 L227.3,181.0 L225.4,180.8 L223.5,181.0 L221.5,181.7 L219.6,182.7 L217.7,183.8 L215.7,185.0 L213.8,186.0 L211.9,186.8 L209.9,187.2 L208.0,187.1 L206.1,186.6 L204.1,185.7 L202.2,184.6 L200.3,183.4 L198.3,182.3 L196.4,181.4 L194.5,180.9 L192.5,180.8 L190.6,181.2 L188.7,181.9 L186.7,182.9 L184.8,184.1 L182.9,185.3 L180.9,186.2 L179.0,186.9 L177.1,187.2 L175.1,187.0 L173.2,186.4 L171.3,185.5 L169.3,184.4 L167.4,183.2 L165.5,182.1 L163.5,181.3 L161.6,180.9 L159.7,180.9 L157.7,181.3 L155.8,182.1 L153.9,183.2 L151.9,184.4 L150.0,185.5 L148.1,186.4 L146.1,187.0 L144.2,187.2 L142.3,186.9 L140.3,186.2 L138.4,185.3 L136.5,184.1 L134.5,182.9 L132.6,181.9 L130.7,181.2 L128.7,180.8 L126.8,180.9 L124.9,181.4 L122.9,182.3 L121.0,183.4 L119.1,184.6 L117.1,185.7 L115.2,186.6 L113.3,187.1 L111.3,187.2 L109.4,186.8 L107.5,186.0 L105.5,185.0 L103.6,183.8 L101.7,182.7 L99.7,181.7 L97.8,181.0 L95.9,180.8 L93.9,181.0 L92.0,181.6 L90.1,182.6 L88.1,183.7 L86.2,184.9 L84.3,186.0 L82.3,186.8 L80.4,187.2 L78.5,187.1 L76.5,186.7 L74.6,185.8 L72.7,184.7 L70.7,183.5 L68.8,182.4 L66.9,181.5 L64.9,180.9 L63.0,180.8 L61.1,181.1 L59.1,181.8 L57.2,182.8 L55.3,184.0 L53.3,185.2 L51.4,186.2 L49.5,186.9 L47.5,187.2 L45.6,187.1 L43.7,186.5 L41.7,185.6 L39.8,184.5 L37.9,183.3 L35.9,182.2 L34.0,181.3 L32.3,180.8 L30.7,180.5 L29.0,180.4 L27.0,180.4 L24.9,180.5 L22.6,180.3 L20.3,179.7 L18.1,178.7 L16.2,177.2 L14.9,175.2 L14.2,172.9 L14.2,170.5 L14.8,168.2 L15.8,166.0 L17.0,164.1 L18.0,162.2 L18.8,160.3 L19.2,158.5 L19.1,156.6 L18.6,154.7 L17.7,152.8 L16.6,150.9 L15.4,149.0 L14.3,147.1 L13.4,145.3 L12.9,143.4 L12.8,141.5 L13.2,139.6 L13.9,137.7 L14.9,135.8 L16.1,133.9 L17.3,132.1 L18.2,130.2 L18.9,128.3 L19.2,126.4 L19.0,124.5 L18.4,122.6 L17.5,120.7 L16.4,118.9 L15.2,117.0 L14.1,115.1 L13.3,113.2 L12.9,111.3 L12.9,109.4 L13.3,107.5 L14.1,105.7 L15.2,103.8 L16.4,101.9 L17.5,100.0 L18.4,98.1 L19.0,96.2 L19.2,94.3 L18.9,92.5 L18.2,90.6 L17.3,88.7 L16.1,86.8 L14.9,84.9 L13.9,83.0 L13.2,81.1 L12.8,79.3 L12.9,77.4 L13.4,75.5 L14.3,73.6 L15.4,71.7 L16.6,69.8 L17.7,67.9 L18.6,66.1 L19.1,64.2 L19.2,62.3 L18.8,60.4 L18.0,58.5 L17.0,56.6 L15.8,54.7 L14.7,52.9 L13.7,51.0 L13.0,49.1 L12.8,47.2 L13.0,45.3 L13.6,43.4 L14.6,41.5 L15.7,39.7 L16.9,37.8 L18.0,35.9 L18.8,34.0 L19.3,32.3 L19.5,30.7 L19.5,28.9 L19.4,27.0 L19.4,24.8 L19.6,22.5 L20.2,20.2 L21.2,18.0 L22.8,16.2 L24.8,14.9 L27.1,14.3 L29.5,14.3 L31.9,14.9 L34.0,16.0Z"/><path class="tn-leaf" transform="translate(34.0,14.0) rotate(-55)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(57.2,18.0) rotate(55)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(80.4,14.0) rotate(-55)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(103.6,18.0) rotate(55)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(126.8,14.0) rotate(-55)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(150.0,18.0) rotate(55)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(173.2,14.0) rotate(-55)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(196.4,18.0) rotate(55)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(219.6,14.0) rotate(-55)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(242.8,18.0) rotate(55)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(266.0,14.0) rotate(-55)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(281.6,30.4) rotate(132)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(286.0,52.9) rotate(35)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(282.0,75.5) rotate(145)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(286.0,98.1) rotate(35)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(282.0,120.7) rotate(145)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(286.0,143.4) rotate(35)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(282.0,166.0) rotate(145)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(270.5,185.5) rotate(112)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(246.7,182.0) rotate(235)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(223.5,186.0) rotate(125)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(200.3,182.0) rotate(235)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(177.1,186.0) rotate(125)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(153.9,182.0) rotate(235)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(130.7,186.0) rotate(125)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(107.5,182.0) rotate(235)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(84.3,186.0) rotate(125)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(61.1,182.0) rotate(235)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(37.9,186.0) rotate(125)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(19.6,172.9) rotate(299)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(14.0,150.9) rotate(-145)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(18.0,128.3) rotate(-35)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(14.0,105.7) rotate(-145)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(18.0,83.0) rotate(-35)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(14.0,60.4) rotate(-145)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(18.0,37.8) rotate(-35)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><path class="tn-leaf" transform="translate(25.3,16.0) rotate(279)" d="M0,0 C3,-4 9,-4 12,0 C9,4 3,4 0,0Z M1,0 L10,0"/><g class="tn-flower" transform="translate(19,19) scale(1.2)"><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(0)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(72)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(144)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(216)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(288)"/><circle r="2.6"/></g><g class="tn-flower" transform="translate(281,19) scale(1.2)"><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(0)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(72)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(144)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(216)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(288)"/><circle r="2.6"/></g><g class="tn-flower" transform="translate(19,181) scale(1.2)"><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(0)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(72)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(144)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(216)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(288)"/><circle r="2.6"/></g><g class="tn-flower" transform="translate(281,181) scale(1.2)"><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(0)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(72)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(144)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(216)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(288)"/><circle r="2.6"/></g><g class="tn-flower" transform="translate(150.0,16) scale(1)"><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(0)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(72)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(144)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(216)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(288)"/><circle r="2.6"/></g><g class="tn-flower" transform="translate(150.0,184) scale(1)"><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(0)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(72)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(144)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(216)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(288)"/><circle r="2.6"/></g><g class="tn-flower" transform="translate(16,100.0) scale(0.9)"><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(0)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(72)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(144)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(216)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(288)"/><circle r="2.6"/></g><g class="tn-flower" transform="translate(284,100.0) scale(0.9)"><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(0)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(72)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(144)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(216)"/><ellipse rx="3.6" ry="6.4" cy="-6" transform="rotate(288)"/><circle r="2.6"/></g></svg>
+
+    <button class="modal-x" type="button" data-close aria-label="Close">&#10005;</button>
+    <div class="tn-in">
+      <h3 id="m3c-t">three nineteen</h3>
+      <p>line dropping soon</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal-lock" hidden>
+  <div class="modal-box lockbox" id="lockbox" role="dialog" aria-modal="true" aria-labelledby="mlk-t">
+    <div class="modal-top">
+      <h3 id="mlk-t" class="sr-only">Members only</h3>
+      <span></span>
+      <button class="modal-x" type="button" data-close aria-label="Close">&#10005;</button>
+    </div>
+    <div id="lk-gate">
+      <button class="lk-btn" id="lk-btn" type="button" aria-label="Unlock" aria-controls="lk-form">
+        <svg viewBox="0 0 80 92" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"><path class="lk-shackle" d="M22 42 V28 a18 18 0 0 1 36 0 V42"/><rect x="10" y="42" width="60" height="44" rx="6" fill="color-mix(in srgb,var(--p-purple) 14%,transparent)"/><circle cx="40" cy="60" r="5"/><path d="M40 65 v9"/></g></svg>
+      </button>
+      <p class="lk-cap" id="lk-cap">Members only</p>
+      <form class="lk-form" id="lk-form" hidden autocomplete="off">
+        <label class="sr-only" for="lk-pw">Password</label>
+        <input id="lk-pw" type="password" placeholder="Password" autocomplete="one-time-code" spellcheck="false">
+        <button type="submit">Enter</button>
+      </form>
+    </div>
+    <div class="lk-load" id="lk-load" hidden>
+      <div class="lk-bar"><i id="lk-fill"></i></div>
+      <p class="lk-status" id="lk-status" role="status" aria-live="polite">Verifying</p>
+    </div>
+    <div id="lk-out" hidden></div>
   </div>
 </div>
 
@@ -4047,7 +4376,7 @@ a{color:inherit}
     // from the start, because a live region appended at the same moment its
     // text arrives is usually missed.
     var say = document.getElementById('egg-say');
-    if(say) say.textContent = 'A fourth panel, Second Thought, has appeared on the rail.';
+    if(say) say.textContent = 'A fourth panel, Hidden Panel Found, has appeared on the rail.';
   });
 })();
 </script>
@@ -4087,7 +4416,7 @@ a{color:inherit}
                line:'2–4 · 11th in the ACC.'}
   };
 
-  var open = null, hideT = 0;
+  var open = null, hideT = 0, lastTouch = -1e9;
 
   function paint(key){
     var t = TEAMS[key];
@@ -4125,16 +4454,44 @@ a{color:inherit}
 
   words.forEach(function(w){
     var key = w.dataset.team;
-    w.addEventListener('pointerenter', function(){ show(key, w); });
-    w.addEventListener('pointerleave', hide);
-    w.addEventListener('focus', function(){ show(key, w); });
+    // A tap fires pointerenter and focus before click, so letting them open the
+    // card made the click see it already open and shut it again. Touch goes
+    // through click alone; focus only counts from the keyboard.
+    w.addEventListener('pointerenter', function(e){ if(e.pointerType !== 'touch') show(key, w); });
+    w.addEventListener('pointerleave', function(e){ if(e.pointerType !== 'touch') hide(); });
+    w.addEventListener('focus', function(){ if(w.matches(':focus-visible')) show(key, w); });
     w.addEventListener('blur', hide);
     w.addEventListener('click', function(){
+      // Touch is handled as press-and-hold below; the click that trails a
+      // release would otherwise reopen the card the finger just let go of.
+      if(performance.now() - lastTouch < 900) return;
       if(open === key) hide(); else show(key, w);
     });
+    /* On a touch screen the card shows only while a finger is on the word, the
+       way a peek works: down shows it, lifting or sliding into a scroll hides it. */
+    w.addEventListener('pointerdown', function(e){
+      if(e.pointerType !== 'touch') return;
+      lastTouch = performance.now();
+      show(key, w);
+    });
+    ['pointerup','pointercancel'].forEach(function(t){
+      w.addEventListener(t, function(e){
+        if(e.pointerType !== 'touch') return;
+        lastTouch = performance.now();
+        hide();
+      });
+    });
+    // A long press on Android opens the context menu, which steals the touch.
+    w.addEventListener('contextmenu', function(e){ if(performance.now() - lastTouch < 900) e.preventDefault(); });
   });
   card.addEventListener('pointerenter', function(){ clearTimeout(hideT); });
-  card.addEventListener('pointerleave', hide);
+  card.addEventListener('pointerleave', function(e){ if(e.pointerType !== 'touch') hide(); });
+  // iOS never focuses a tapped button, so blur cannot close the docked card.
+  // A tap anywhere that is not a team word or the card itself does.
+  document.addEventListener('pointerdown', function(e){
+    if(open && !e.target.closest('.tw') && !card.contains(e.target)) hide();
+  });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && open) hide(); });
 
   /* Live override, inert until LIVE_URL is set. Expected shape:
      { celtics: {line: "..."} , bruins: {...}, redsox: {...}, patriots: {...} } */
@@ -4418,9 +4775,17 @@ a{color:inherit}
        canvas sit in different containers, so the offset is measured rather
        than guessed, and it re-measures whenever the panel does. */
     var t = document.getElementById('arc-title');
+    var fav = document.getElementById('arc-fav');
     if(t){
       var tr = t.getBoundingClientRect();
       if(tr.width) SKX = Math.max(84, Math.min(Math.round(W * 0.42), Math.round(tr.right - r.left + 12)));
+    }
+    /* On a phone, past EGG put him at ~40% of the width, which left too
+       little runway to read what was coming. There he starts under the F in
+       FAV instead. */
+    if(fav && W <= 620){
+      var fr = fav.getBoundingClientRect();
+      if(fr.width) SKX = Math.max(12, Math.round(fr.left - r.left));
     }
   }
 
@@ -4708,12 +5073,14 @@ a{color:inherit}
    in an earlier edit, so "Site v1" and the 3CXIX hotspot were both dead clicks.
    One controller rather than two, so a third modal only needs a row here. */
 (function(){
-  var PAIRS = [['v1-tile', 'modal-v1'], ['egg-3cxix', 'modal-3cxix']];
+  var PAIRS = [['v1-tile', 'modal-v1'], ['hp-st', 'modal-st'], ['hp-3c', 'modal-3c'], ['hp-lock', 'modal-lock']];
   var live = null, lastFocus = null, prevOverflow = '';
 
   function close(){
     if(!live) return;
     live.hidden = true;
+    // Lets a modal tidy up after itself (the lock stops its video).
+    live.dispatchEvent(new CustomEvent('modalclose'));
     document.body.style.overflow = prevOverflow;
     if(lastFocus && document.contains(lastFocus)) lastFocus.focus({ preventScroll:true });
     live = null; lastFocus = null;
@@ -4746,6 +5113,150 @@ a{color:inherit}
   document.addEventListener('keydown', function(e){
     if(e.key === 'Escape' && live) close();
   });
+})();
+</script>
+
+<script>
+/* Run Shree Run!. The arcade cabinet in the pixel art opens a drawer under .crtv and
+   loads the game into it. Closing unloads the frame, which is the only reliable
+   way to stop its music and its rAF loop. The game posts {type:'ExitChat'} when
+   Escape is pressed on its title screen; that closes the drawer too. */
+(function(){
+  var egg = document.getElementById('egg-3cxix');
+  var dash = document.getElementById('dash');
+  var frame = document.getElementById('dash-frame');
+  var shut = document.getElementById('dash-x');
+  if(!egg || !dash || !frame || !shut) return;
+  var SRC = 'run-shree-run/index.html', open = false;
+
+  function openDash(){
+    open = true;
+    dash.classList.add('on');
+    egg.setAttribute('aria-expanded', 'true');
+    frame.src = SRC;
+    setTimeout(function(){
+      dash.scrollIntoView({ behavior:'smooth', block:'center' });
+      try { frame.focus({ preventScroll:true }); } catch(e){}
+    }, 300);
+  }
+  function closeDash(){
+    open = false;
+    dash.classList.remove('on');
+    egg.setAttribute('aria-expanded', 'false');
+    setTimeout(function(){ if(!open) frame.removeAttribute('src'); }, 650);
+    egg.focus({ preventScroll:true });
+  }
+  frame.addEventListener('load', function(){
+    if(!open) return;
+    try { frame.contentWindow.focus(); } catch(e){}
+  });
+
+  egg.addEventListener('click', function(){ open ? closeDash() : openDash(); });
+  shut.addEventListener('click', closeDash);
+  addEventListener('message', function(e){
+    if(e.source !== frame.contentWindow || !e.data) return;
+    if(e.data.type === 'ExitChat' && open) closeDash();
+  });
+})();
+</script>
+
+<script>
+/* The lock. Any password opens it; the "loading" is theatre, and what loads is
+   a rickroll. Closing the modal puts the lock back and unloads the video, so
+   the music never keeps playing behind the page. */
+(function(){
+  var m = document.getElementById('modal-lock');
+  if(!m) return;
+  var box = document.getElementById('lockbox'), gate = document.getElementById('lk-gate');
+  var btn = document.getElementById('lk-btn'), cap = document.getElementById('lk-cap');
+  var form = document.getElementById('lk-form'), pw = document.getElementById('lk-pw');
+  var load = document.getElementById('lk-load'), fill = document.getElementById('lk-fill');
+  var status = document.getElementById('lk-status'), out = document.getElementById('lk-out');
+  // END is in seconds: YouTube stops the clip there, which is the trim. This
+  // is the original 2007 upload; dQw4w9WgXcQ is the official video and also embeds.
+  var VID = 'oHg5SJYRHA0', END = 45, timer = 0;
+  var STEPS = [[0,'Verifying'],[30,'Checking credentials'],[50,'Decrypting'],[74,'You must be a hacker, or a really good guesser!']];
+
+  btn.addEventListener('click', function(){
+    btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');
+    form.hidden = false; cap.textContent = 'Enter the password';
+    setTimeout(function(){ pw.focus(); }, 60);
+  });
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    pw.value = '';
+    gate.hidden = true; load.hidden = false;
+    var p = 0;
+    timer = setInterval(function(){
+      p = Math.min(100, p + 2 + Math.random() * 5);
+      fill.style.width = p + '%';
+      for(var i = STEPS.length - 1; i >= 0; i--){ if(p >= STEPS[i][0]){ status.textContent = STEPS[i][1]; break; } }
+      // The last line is a sentence, not a status word, so it gets time to be read.
+      if(p >= 100){ clearInterval(timer); setTimeout(reveal, 1600); }
+    }, 90);
+  });
+  function reveal(){
+    if(m.hidden) return;
+    load.hidden = true; box.classList.add('rolled');
+    out.innerHTML = '<div class="lk-vid"><iframe title="Members-only content" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen ' +
+      'src="https://www.youtube-nocookie.com/embed/' + VID + '?autoplay=1&rel=0&end=' + END + '"></iframe></div>';
+    out.hidden = false;
+  }
+  m.addEventListener('modalclose', function(){
+    clearInterval(timer);
+    out.innerHTML = ''; out.hidden = true;
+    load.hidden = true; fill.style.width = '0';
+    gate.hidden = false; form.hidden = true; pw.value = '';
+    cap.textContent = 'Members only';
+    box.classList.remove('rolled'); btn.classList.remove('shake');
+  });
+})();
+</script>
+
+<script>
+/* The Sherlock egg. Clicking the name wiggles it and slides a toast up from
+   the bottom of the screen; it leaves on its own, on the X, or on Escape. */
+(function(){
+  var btn = document.getElementById('mark-btn');
+  var t = document.getElementById('toast');
+  var x = document.getElementById('toast-x');
+  if(!btn || !t || !x) return;
+  /* Every click is a fresh toast: one already up drops away first and a new
+     one rises in its place, and each lives 5 seconds unless dismissed. */
+  var timer = 0, swap = 0, LIFE = 5000, DROP = 300;
+  function hide(){ clearTimeout(timer); clearTimeout(swap); t.classList.remove('on'); }
+  function show(){ t.classList.add('on'); timer = setTimeout(hide, LIFE); }
+  btn.addEventListener('click', function(){
+    btn.classList.remove('wiggle'); void btn.offsetWidth; btn.classList.add('wiggle');
+    var up = t.classList.contains('on');
+    hide();
+    if(up) swap = setTimeout(show, DROP); else show();
+  });
+  x.addEventListener('click', hide);
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') hide(); });
+})();
+</script>
+
+<script>
+/* Centre Buzz under the education heading's text, not under its block, which
+   runs the full width of the column. The text's own width comes from a Range,
+   so it is right whether the heading sits on one line or wraps to two, and a
+   ResizeObserver re-measures when the pane is shown again or the font lands. */
+(function(){
+  var h = document.querySelector('#ep-0 .xp-role');
+  var g = document.querySelector('#ep-0 .gt-buzz');
+  if(!h || !g) return;
+  function place(){
+    if(!g.offsetWidth) return;
+    var r = document.createRange(); r.selectNodeContents(h);
+    var tr = r.getBoundingClientRect(), pr = g.parentNode.getBoundingClientRect();
+    var x = (tr.left - pr.left) + (tr.width - g.offsetWidth) / 2;
+    g.style.marginLeft = Math.max(0, Math.round(x)) + 'px';
+  }
+  if(window.ResizeObserver){ var ro = new ResizeObserver(place); ro.observe(h); ro.observe(g); }
+  addEventListener('resize', place);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(place);
+  place();
 })();
 </script>
 
@@ -5001,7 +5512,7 @@ a{color:inherit}
   if(!stage) return;
   var pills = Array.prototype.slice.call(stage.querySelectorAll('.th-pill'));
   if(!pills.length) return;
-  var TOPICS = ["Why manuals are coming back", "The death of the cheap car", "Hydrogen vs. EVs", "Time runs slower in orbit", "Why ice is actually slippery", "The observer effect", "Why forgeries fool experts", "Brutalism's comeback", "The bond market runs things", "Why the Fed watches jobs", "Price discrimination", "Why airlines overbook", "Zone 2 and why it works", "Carbon plates: fair or not", "Tanking as a strategy", "Why home advantage is real", "The rule of three", "Why crowd work took over", "Where AI agents break", "On-device vs. cloud AI"];
+  var TOPICS = ["Would you buy a manual car?", "How is AI changing the workforce?", "The bond market runs things", "How does the Fed fight inflation?", "How are airlines allowed to overbook?", "Toppings vs. no toppings on pizza", "Heard of the Hansons Training Method?", "F1 pit crew strategies", "Where AI agents break", "Thoughts on the new Apple duo?", "Want to train together for an Ironman?", "Who's your favorite Friends character?", "Is Shrek the best animated film?", "Easter Egg #7", "How's your fantasy team doing?", "Who's winning the Super Bowl?"];
   // The first four are already on screen, so the queue starts after them.
   var next = pills.length % TOPICS.length;
   pills.forEach(function(pill){

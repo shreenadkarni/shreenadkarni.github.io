@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Run Shree Run!</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="game.css">
+<style>html,body{margin:0;height:100%;background:transparent;overflow:hidden}
+/* The game's menus dim the whole viewport. Inside the site that read as a
+   black box round the console, so the dim goes and the menu card, which is
+   opaque on its own, carries the overlay. */
+#root .absolute.inset-0.bg-black\/70{background:transparent}</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="game.js"></script>
+<script>
+/* Fit the console to the frame. The shell is sized by its width, so in a
+   frame shorter than it is tall the export either clips it (desktop) or makes
+   it scroll (phone). This scales it down around its centre until the whole
+   console, buttons included, is on screen. It never scales up. */
+(function(){
+  var shell = null, last = '';
+  function find(){
+    return document.querySelector('#root [class*="max-w-[430px]"]');
+  }
+  function fit(){
+    shell = shell && document.contains(shell) ? shell : find();
+    if(!shell) return;
+    var host = shell.parentNode;
+    var h = shell.offsetHeight, w = shell.offsetWidth;
+    var pad = 8, s = Math.min(1, (innerHeight - pad * 2) / h, (innerWidth - pad * 2) / w);
+    var key = s.toFixed(4);
+    if(key === last) return; last = key;
+    host.style.justifyContent = 'center';
+    host.style.overflow = 'hidden';
+    shell.style.flex = 'none';
+    shell.style.transformOrigin = 'center center';
+    shell.style.transform = s < 1 ? 'scale(' + s + ')' : '';
+    // The page behind the console is see-through, so the site shows on
+    // either side of the handheld instead of black bars.
+    host.style.background = 'transparent';
+  }
+  new MutationObserver(fit).observe(document.getElementById('root'), { childList:true, subtree:true });
+  addEventListener('resize', function(){ last = ''; fit(); });
+  if(window.ResizeObserver) new ResizeObserver(function(){ last = ''; fit(); }).observe(document.documentElement);
+  fit();
+})();
+</script>
+</body>
+</html>
